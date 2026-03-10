@@ -35,6 +35,7 @@ function createPlaceholderThumbnail(text, color) {
 // Generate and export thumbnails
 export const thumbnails = {
   buddha: createPlaceholderThumbnail('Buddha\nStatue', '#8b6914'),
+  gandharan: createPlaceholderThumbnail('Gandharan\nHead', '#3f3a33'),
   vase: createPlaceholderThumbnail('Ancient\nVase', '#1a4d8b'),
   bust: createPlaceholderThumbnail('Marble\nBust', '#e8e8e8'),
   relic: createPlaceholderThumbnail('Golden\nRelic', '#ffd700')
@@ -44,7 +45,12 @@ export const thumbnails = {
 import { collection } from './collection.js';
 
 collection.forEach(obj => {
-  if (thumbnails[obj.id]) {
+  // If a real thumbnail path is provided (e.g. ./assets/thumbnails/*.jpg),
+  // prefer it. Only fall back to generated placeholders when thumbnail is missing.
+  const hasRealThumbnailPath =
+    typeof obj.thumbnail === 'string' && obj.thumbnail.includes('/assets/thumbnails/');
+
+  if (!hasRealThumbnailPath && thumbnails[obj.id]) {
     obj.thumbnail = thumbnails[obj.id];
   }
 });

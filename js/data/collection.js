@@ -8,12 +8,13 @@ export const collection = [
     id: 'buddha',
     title: 'Buddha Statue',
     period: '12th Century',
-    description: 'An exquisite meditation Buddha statue from the Angkor period, crafted from sandstone. This serene figure represents the moment of enlightenment, with intricate hand gestures (mudras) symbolizing teaching and meditation. The statue showcases the artistic mastery of Khmer sculptors and their deep understanding of Buddhist iconography.',
-    longDescription: `This remarkable Buddha statue dates back to the 12th century during the height of the Khmer Empire. The piece demonstrates exceptional craftsmanship with its smooth, flowing robes and peaceful countenance.
-
-The statue's mudra (hand gesture) indicates the Dharmachakra mudra, representing the turning of the wheel of dharma - the Buddha's first teaching after achieving enlightenment. The closed eyes and serene expression invite contemplation and inner peace.
-
-Discovered in the ruins of an ancient temple in Cambodia, this statue has survived centuries and serves as a testament to the enduring spiritual and artistic legacy of Southeast Asian Buddhism.`,
+    description: 'Universal Buddha in the Gesture of Ultimate Enlightenment (Vairocana in Uttarabodhimudra). Ming dynasty (16th century), China. Bronze, gilded, and pigments. From the Crow Collection of Asian Art (Accession 1976.3).',
+    longDescription: `Title: Universal Buddha in the Gesture of Ultimate Enlightenment (Vairocana in Uttarabodhimudra)
+Culture/Country: China
+Period: Ming dynasty (1368-1644), 16th century
+Medium: Bronze, gilded, and pigments
+Collection Title: Crow Collection of Asian Art
+Accession Number: 1976.3`,
     thumbnail: './assets/thumbnails/buddha.jpg',
     hasModel: true,
     hasAR: true,
@@ -22,6 +23,20 @@ Discovered in the ruins of an ancient temple in Cambodia, this statue has surviv
     material: 'Sandstone',
     origin: 'Cambodia',
     dimensions: '45cm × 30cm × 25cm'
+  },
+  {
+    id: 'gandharan',
+    title: 'Gandharan Head (Fragment)',
+    period: 'Gandhara (1st–3rd Century CE)',
+    description: 'A sculpted head fragment from the Gandharan region (present-day Pakistan), carved in the Greco-Buddhist tradition. The refined facial features and stylized hair reflect a fusion of Hellenistic and South Asian artistic influences.',
+    longDescription: `This fragmentary head is a compelling example of Gandharan sculpture, produced in a region that became a crossroads of cultures along ancient trade routes.\n\nGandharan artists blended South Asian iconography with Hellenistic naturalism, resulting in works with lifelike facial modeling, carefully rendered hair, and a distinctive sense of volume and proportion.\n\nThough the original statue was damaged over time, this surviving head preserves the craftsmanship and cultural synthesis that define the Greco-Buddhist tradition of Gandhara.`,
+    thumbnail: './assets/thumbnails/gandharan.jpg',
+    hasModel: true,
+    hasAR: false,
+    modelPath: './assets/gandharan.glb',
+    material: 'Schist Stone',
+    origin: 'Gandhara (Present-day Pakistan)',
+    dimensions: 'Fragment (approx. life-size)'
   },
   {
     id: 'vase',
