@@ -18,6 +18,8 @@ export default class WebXRController {
     this.referenceSpace = null;
     this.viewerSpace = null; // Store viewer space for hit-test
     this.arTargetHeightM = null;
+    this.lastHitTestResult = null;
+    this.anchors = [];
     this.placedModels = [];
     this.modelTemplate = null;
     this.isActive = false;
@@ -58,7 +60,7 @@ export default class WebXRController {
         // Try with 'local' as required feature (needed for hit-test)
         this.session = await navigator.xr.requestSession('immersive-ar', {
           requiredFeatures: ['local'],
-          optionalFeatures: ['hit-test', 'dom-overlay', 'local-floor'],
+          optionalFeatures: ['hit-test', 'anchors', 'dom-overlay', 'local-floor'],
           domOverlay: { root: document.body }
         });
         this.log('[WebXR] Session granted with local reference space');
@@ -67,7 +69,7 @@ export default class WebXRController {
         
         // Fallback: Try without requiring local (hit-test won't work)
         this.session = await navigator.xr.requestSession('immersive-ar', {
-          optionalFeatures: ['hit-test', 'dom-overlay', 'local', 'local-floor', 'viewer'],
+          optionalFeatures: ['hit-test', 'anchors', 'dom-overlay', 'local', 'local-floor', 'viewer'],
           domOverlay: { root: document.body }
         });
         this.log('[WebXR] Session granted without local requirement (hit-test disabled)');
@@ -106,15 +108,16 @@ export default class WebXRController {
       // Get reference space with fallbacks
       this.log('[WebXR] Requesting reference space...');
       try {
-        this.referenceSpace = await this.session.requestReferenceSpace('local');
-        this.log('[WebXR] ✓ Got "local" reference space');
+        // Best practice for AR placement: prefer local-floor for stable alignment to real-world floor.
+        this.referenceSpace = await this.session.requestReferenceSpace('local-floor');
+        this.log('[WebXR] ✓ Got "local-floor" reference space');
       } catch (error) {
-        this.log(`[WebXR] "local" not supported, trying "local-floor"...`);
+        this.log(`[WebXR] "local-floor" not supported, trying "local"...`);
         try {
-          this.referenceSpace = await this.session.requestReferenceSpace('local-floor');
-          this.log('[WebXR] ✓ Got "local-floor" reference space');
+          this.referenceSpace = await this.session.requestReferenceSpace('local');
+          this.log('[WebXR] ✓ Got "local" reference space');
         } catch (error2) {
-          this.log(`[WebXR] "local-floor" not supported, trying "viewer"...`);
+          this.log(`[WebXR] "local" not supported, trying "viewer"...`);
           this.referenceSpace = await this.session.requestReferenceSpace('viewer');
           this.log('[WebXR] ✓ Got "viewer" reference space');
         }
@@ -220,6 +223,8 @@ export default class WebXRController {
 
   createReticle() {
     const geometry = new THREE.RingGeometry(0.12, 0.15, 32);
+    // RingGeometry is in the XY plane by default; rotate to lie flat on XZ (floor/table surfaces).
+    geometry.rotateX(-Math.PI / 2);
     const material = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       side: THREE.DoubleSide,
@@ -254,10 +259,12 @@ export default class WebXRController {
           // Set appropriate scale for AR
           const size = new THREE.Vector3();
           box.getSize(size);
-          const maxDim = Math.max(size.x, size.y, size.z);
           // Default to ~30cm if no real-world target height was provided.
           const targetHeightM = this.arTargetHeightM || 0.3;
-          const scale = targetHeightM / maxDim;
+          // Best practice: scale by height (Y). Using max dimension can underscale
+          // models with wide bases/pedestals.
+          const effectiveHeight = size.y > 0 ? size.y : Math.max(size.x, size.y, size.z);
+          const scale = targetHeightM / effectiveHeight;
           this.modelTemplate.scale.setScalar(scale);
 
           // Optimize materials
@@ -318,6 +325,7 @@ export default class WebXRController {
 
     if (hitTestResults.length > 0) {
       const hit = hitTestResults[0];
+      this.lastHitTestResult = hit;
       const pose = hit.getPose(this.referenceSpace);
 
       if (pose) {
@@ -326,10 +334,11 @@ export default class WebXRController {
       }
     } else {
       this.reticle.visible = false;
+      this.lastHitTestResult = null;
     }
   }
 
-  placeModel() {
+  async placeModel() {
     if (!this.reticle.visible || !this.modelTemplate) {
       return null;
     }
@@ -343,6 +352,27 @@ export default class WebXRController {
     const scale = new THREE.Vector3();
     this.reticle.matrix.decompose(position, quaternion, scale);
 
+    // Prefer anchors when available to reduce "swimming"/slipping as tracking refines.
+    const session = this.session;
+    const anchorsEnabled = session?.enabledFeatures && session.enabledFeatures.includes('anchors');
+    const canCreateAnchor = !!this.lastHitTestResult?.createAnchor;
+
+    if (anchorsEnabled && canCreateAnchor) {
+      try {
+        const anchor = await this.lastHitTestResult.createAnchor();
+        this.anchors.push({ anchor, object: model });
+        // Initial pose set now; subsequent updates will come from anchor space each frame.
+        model.position.copy(position);
+        model.quaternion.copy(quaternion);
+        this.scene.add(model);
+        this.placedModels.push(model);
+        this.log('[WebXR] ✓ Created anchor for placed object');
+        return model;
+      } catch (e) {
+        this.log(`[WebXR] ⚠ Failed to create anchor, placing without anchor: ${e.message}`);
+      }
+    }
+
     model.position.copy(position);
     model.quaternion.copy(quaternion);
 
@@ -350,6 +380,20 @@ export default class WebXRController {
     this.placedModels.push(model);
 
     return model;
+  }
+
+  updateAnchors(frame) {
+    if (!this.referenceSpace || !this.anchors.length) return;
+
+    // Update anchored objects to their anchorSpace pose each frame
+    for (const entry of this.anchors) {
+      const { anchor, object } = entry;
+      if (!anchor?.anchorSpace || !object) continue;
+      const pose = frame.getPose(anchor.anchorSpace, this.referenceSpace);
+      if (!pose) continue;
+      object.matrix.fromArray(pose.transform.matrix);
+      object.matrix.decompose(object.position, object.quaternion, object.scale);
+    }
   }
 
   removeLastModel() {

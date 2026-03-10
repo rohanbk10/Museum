@@ -491,6 +491,8 @@ export default class ARPlanePage {
       if (frame && this.webxrController) {
         // Update reticle position based on hit-test
         this.webxrController.updateReticle(frame);
+        // Update anchored objects (reduces drifting/slipping)
+        this.webxrController.updateAnchors(frame);
 
         // Update UI based on reticle visibility
         this.updatePlacementUI();
@@ -543,22 +545,25 @@ export default class ARPlanePage {
   placeModel() {
     if (!this.webxrController) return;
 
-    const model = this.webxrController.placeModel();
-    
-    if (model) {
-      this.updateStatus('Object placed!', '✅');
-      this.updatePlacementUI();
+    this.webxrController.placeModel()
+      .then((model) => {
+        if (!model) return;
+        this.updateStatus('Object placed!', '✅');
+        this.updatePlacementUI();
 
-      // Flash feedback
-      const container = document.getElementById('webxr-container');
-      if (container) {
-        container.style.transition = 'opacity 0.1s';
-        container.style.opacity = '0.7';
-        setTimeout(() => {
-          container.style.opacity = '1';
-        }, 100);
-      }
-    }
+        // Flash feedback
+        const container = document.getElementById('webxr-container');
+        if (container) {
+          container.style.transition = 'opacity 0.1s';
+          container.style.opacity = '0.7';
+          setTimeout(() => {
+            container.style.opacity = '1';
+          }, 100);
+        }
+      })
+      .catch((e) => {
+        this.log(`Placement failed: ${e.message}`, 'error');
+      });
   }
 
   undoLastPlacement() {
