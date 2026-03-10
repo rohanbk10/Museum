@@ -540,6 +540,9 @@ export default class ARPlanePage {
         this.updatePlacementUI();
       }
 
+      // WebXR best practice: clear depth each frame so virtual content
+      // doesn't accumulate depth and occlude the camera feed.
+      renderer.clearDepth();
       renderer.render(scene, camera);
     });
   }
