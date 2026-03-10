@@ -14,6 +14,26 @@ export default class ARPlanePage {
     this.object = null;
     this.webxrController = null;
     this.renderLoop = null;
+    this.diagnosticLogs = [];
+  }
+  
+  log(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}`;
+    this.diagnosticLogs.push(logEntry);
+    console.log(message);
+    
+    // Update diagnostic panel
+    const panel = document.getElementById('diagnostic-panel');
+    if (panel) {
+      const logsDiv = panel.querySelector('.diagnostic-logs');
+      if (logsDiv) {
+        logsDiv.innerHTML = this.diagnosticLogs.map(log => 
+          `<div class="log-line">${log}</div>`
+        ).join('');
+        logsDiv.scrollTop = logsDiv.scrollHeight;
+      }
+    }
   }
 
   render() {
@@ -51,6 +71,28 @@ export default class ARPlanePage {
             <button class="webxr-start-btn" data-action="start-session">
               Start AR Session
             </button>
+            <button class="webxr-start-btn secondary" data-action="show-diagnostics" style="margin-top: 20px;">
+              Show Diagnostics
+            </button>
+          </div>
+        </div>
+        
+        <!-- Diagnostic Panel -->
+        <div class="diagnostic-panel" id="diagnostic-panel" style="display: none;">
+          <div class="diagnostic-header">
+            <h3>WebXR Diagnostics</h3>
+            <button class="diagnostic-close" data-action="close-diagnostics">&times;</button>
+          </div>
+          <div class="diagnostic-info" id="diagnostic-info">
+            <div class="info-item"><strong>User Agent:</strong> <span id="diag-ua">Loading...</span></div>
+            <div class="info-item"><strong>WebXR Available:</strong> <span id="diag-xr">Loading...</span></div>
+            <div class="info-item"><strong>AR Supported:</strong> <span id="diag-ar">Loading...</span></div>
+            <div class="info-item"><strong>Chrome Version:</strong> <span id="diag-chrome">Loading...</span></div>
+          </div>
+          <div class="diagnostic-logs" id="diagnostic-logs"></div>
+          <div class="diagnostic-actions">
+            <button class="webxr-start-btn" data-action="copy-logs">Copy Logs</button>
+            <button class="webxr-start-btn secondary" data-action="run-test">Run AR Test</button>
           </div>
         </div>
         
@@ -114,15 +156,65 @@ export default class ARPlanePage {
 
     // Don't auto-start - wait for user to click start button
     // WebXR requires user gesture to request session
+    
+    // Initialize diagnostics
+    this.initDiagnostics();
+  }
+
+  async initDiagnostics() {
+    this.log('Page loaded - initializing diagnostics');
+    this.log(`User Agent: ${navigator.userAgent}`);
+    this.log(`WebXR available: ${!!navigator.xr}`);
+    
+    if (navigator.xr) {
+      try {
+        const supported = await navigator.xr.isSessionSupported('immersive-ar');
+        this.log(`Immersive AR supported: ${supported}`);
+      } catch (error) {
+        this.log(`Error checking AR support: ${error.message}`);
+      }
+    }
+    
+    // Extract Chrome version
+    const match = navigator.userAgent.match(/Chrome\/(\d+)/);
+    if (match) {
+      this.log(`Chrome version: ${match[1]}`);
+    }
   }
 
   setupUIHandlers() {
+    // Show diagnostics button
+    const diagBtn = document.querySelector('[data-action="show-diagnostics"]');
+    if (diagBtn) {
+      diagBtn.addEventListener('click', () => this.showDiagnostics());
+    }
+
+    // Close diagnostics button
+    const closeDiagBtn = document.querySelector('[data-action="close-diagnostics"]');
+    if (closeDiagBtn) {
+      closeDiagBtn.addEventListener('click', () => this.hideDiagnostics());
+    }
+
+    // Copy logs button
+    const copyBtn = document.querySelector('[data-action="copy-logs"]');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => this.copyLogs());
+    }
+
+    // Run test button
+    const testBtn = document.querySelector('[data-action="run-test"]');
+    if (testBtn) {
+      testBtn.addEventListener('click', () => this.runARTest());
+    }
+
     // Start AR button - MUST be clicked to start session (user gesture required)
     const startBtn = document.querySelector('[data-action="start-session"]');
     if (startBtn) {
       startBtn.addEventListener('click', async () => {
         startBtn.disabled = true;
         startBtn.textContent = 'Starting...';
+        
+        this.log('User clicked Start AR Session button');
         
         try {
           await this.startWebXR();
@@ -133,6 +225,7 @@ export default class ARPlanePage {
             overlay.style.display = 'none';
           }
         } catch (error) {
+          this.log(`Failed to start: ${error.message}`, 'error');
           // Re-enable button on error so user can try again
           startBtn.disabled = false;
           startBtn.textContent = 'Try Again';
@@ -164,6 +257,141 @@ export default class ARPlanePage {
     });
   }
 
+  showDiagnostics() {
+    const panel = document.getElementById('diagnostic-panel');
+    const overlay = document.getElementById('webxr-start-overlay');
+    
+    if (panel) {
+      panel.style.display = 'flex';
+    }
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+    
+    // Update diagnostic info
+    this.updateDiagnosticInfo();
+  }
+
+  hideDiagnostics() {
+    const panel = document.getElementById('diagnostic-panel');
+    const overlay = document.getElementById('webxr-start-overlay');
+    
+    if (panel) {
+      panel.style.display = 'none';
+    }
+    if (overlay) {
+      overlay.style.display = 'flex';
+    }
+  }
+
+  async updateDiagnosticInfo() {
+    document.getElementById('diag-ua').textContent = navigator.userAgent;
+    document.getElementById('diag-xr').textContent = navigator.xr ? 'Yes ✓' : 'No ✗';
+    
+    const match = navigator.userAgent.match(/Chrome\/(\d+)/);
+    document.getElementById('diag-chrome').textContent = match ? match[1] : 'Unknown';
+    
+    if (navigator.xr) {
+      try {
+        const supported = await navigator.xr.isSessionSupported('immersive-ar');
+        document.getElementById('diag-ar').textContent = supported ? 'Yes ✓' : 'No ✗';
+        
+        if (!supported) {
+          this.log('⚠️ AR not supported - possible reasons:');
+          this.log('  - Chrome version too old (need 79+)');
+          this.log('  - ARCore not installed');
+          this.log('  - Device not ARCore compatible');
+          this.log('  - WebXR flag disabled in chrome://flags');
+        }
+      } catch (error) {
+        document.getElementById('diag-ar').textContent = `Error: ${error.message}`;
+        this.log(`Error checking AR: ${error.message}`);
+      }
+    } else {
+      document.getElementById('diag-ar').textContent = 'N/A (no WebXR)';
+    }
+  }
+
+  copyLogs() {
+    const logsText = this.diagnosticLogs.join('\n');
+    
+    // Try modern clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(logsText).then(() => {
+        this.log('✓ Logs copied to clipboard!');
+        alert('Logs copied to clipboard!');
+      }).catch(err => {
+        this.fallbackCopy(logsText);
+      });
+    } else {
+      this.fallbackCopy(logsText);
+    }
+  }
+
+  fallbackCopy(text) {
+    // Fallback for older browsers
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    
+    try {
+      document.execCommand('copy');
+      this.log('✓ Logs copied (fallback method)');
+      alert('Logs copied to clipboard!');
+    } catch (err) {
+      this.log('✗ Failed to copy logs');
+      alert('Could not copy logs. Please screenshot instead.');
+    }
+    
+    document.body.removeChild(textarea);
+  }
+
+  async runARTest() {
+    this.log('=== Running AR Compatibility Test ===');
+    this.log(`Browser: ${navigator.userAgent}`);
+    this.log(`Platform: ${navigator.platform}`);
+    this.log(`Language: ${navigator.language}`);
+    
+    // Test 1: WebXR API
+    this.log('Test 1: Checking WebXR API...');
+    if (!navigator.xr) {
+      this.log('✗ FAIL: navigator.xr is undefined');
+      this.log('  → WebXR not available in this browser');
+      return;
+    }
+    this.log('✓ PASS: navigator.xr exists');
+    
+    // Test 2: Session support
+    this.log('Test 2: Checking immersive-ar support...');
+    try {
+      const supported = await navigator.xr.isSessionSupported('immersive-ar');
+      if (!supported) {
+        this.log('✗ FAIL: immersive-ar not supported');
+        this.log('  → Check ARCore installation');
+        this.log('  → Check chrome://flags/#webxr');
+        return;
+      }
+      this.log('✓ PASS: immersive-ar is supported');
+    } catch (error) {
+      this.log(`✗ FAIL: Error checking support - ${error.message}`);
+      return;
+    }
+    
+    // Test 3: Try requesting session
+    this.log('Test 3: Attempting to request AR session...');
+    this.log('(This will trigger camera permission)');
+    
+    try {
+      await this.startWebXR();
+      this.log('✓ SUCCESS: AR session started!');
+    } catch (error) {
+      this.log(`✗ FAIL: ${error.message}`);
+    }
+  }
+
   async startWebXR() {
     const container = document.getElementById('webxr-container');
     const status = document.getElementById('webxr-status');
@@ -171,23 +399,26 @@ export default class ARPlanePage {
     const controls = document.getElementById('webxr-controls');
 
     if (!container) {
-      console.error('WebXR container not found');
+      this.log('✗ WebXR container not found');
       this.showError('Setup Error', 'AR container not found. Please try refreshing the page.');
       return;
     }
 
     try {
-      this.webxrController = new WebXRController();
+      this.log('Creating WebXR controller...');
+      this.webxrController = new WebXRController(this.log.bind(this));
 
       // Show status now that session is starting
       if (status) status.style.display = 'block';
       this.updateStatus('Starting AR session...', '🚀');
 
+      this.log('Starting WebXR session...');
       await this.webxrController.startSession(
         container,
         this.object.modelPath,
         {
           onStart: () => {
+            this.log('✓ AR session started successfully!');
             this.updateStatus('Point camera at a surface', '📱');
             
             // Show instructions
@@ -205,13 +436,15 @@ export default class ARPlanePage {
             this.startRenderLoop();
           },
           onEnd: () => {
+            this.log('AR session ended');
             this.stopRenderLoop();
           }
         }
       );
 
     } catch (error) {
-      console.error('Failed to start WebXR:', error);
+      this.log(`✗ Failed to start WebXR: ${error.message}`);
+      this.log(`Error name: ${error.name}`);
       
       // Determine user-friendly error message
       let errorMessage = 'Failed to start AR';
