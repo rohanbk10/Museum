@@ -75,24 +75,25 @@ export default class WebXRController {
         this.log('[WebXR] Model loaded successfully');
       }
 
-      // Request XR session with fallback
-      this.log('[WebXR] Requesting XR session with hit-test...');
+      // Request XR session with proper feature requirements
+      this.log('[WebXR] Requesting XR session...');
       try {
+        // Try with 'local' as required feature (needed for hit-test)
         this.session = await navigator.xr.requestSession('immersive-ar', {
-          requiredFeatures: ['hit-test'],
-          optionalFeatures: ['dom-overlay'],
+          requiredFeatures: ['local'],
+          optionalFeatures: ['hit-test', 'dom-overlay', 'local-floor'],
           domOverlay: { root: document.body }
         });
-        this.log('[WebXR] Session granted with hit-test');
+        this.log('[WebXR] Session granted with local reference space');
       } catch (error) {
-        this.log(`[WebXR] Hit-test not available: ${error.name}`);
+        this.log(`[WebXR] Local space not available: ${error.name}`);
         
-        // Fallback: Try without hit-test as required feature
+        // Fallback: Try without requiring local (hit-test won't work)
         this.session = await navigator.xr.requestSession('immersive-ar', {
-          optionalFeatures: ['hit-test', 'dom-overlay'],
+          optionalFeatures: ['hit-test', 'dom-overlay', 'local', 'local-floor', 'viewer'],
           domOverlay: { root: document.body }
         });
-        this.log('[WebXR] Session granted without hit-test requirement');
+        this.log('[WebXR] Session granted without local requirement (hit-test disabled)');
       }
 
       this.log(`[WebXR] Session created: ${!!this.session}`);
@@ -242,6 +243,14 @@ export default class WebXRController {
 
     try {
       const session = frame.session;
+
+      // Check if hit-test feature was actually granted (it was optional)
+      if (!session.enabledFeatures || !session.enabledFeatures.includes('hit-test')) {
+        this.log('[WebXR] ⚠ Hit-test feature not granted by device');
+        this.log('[WebXR] Available features: ' + (session.enabledFeatures ? Array.from(session.enabledFeatures).join(', ') : 'none'));
+        return;
+      }
+
       this.hitTestSource = await session.requestHitTestSource({ space: this.viewerSpace });
       this.log('[WebXR] ✓ Hit-test source created successfully');
     } catch (error) {
