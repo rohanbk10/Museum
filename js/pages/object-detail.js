@@ -36,7 +36,7 @@ export default class ObjectDetailPage {
     return `
       <div class="detail-page">
         <header class="detail-header">
-          <button class="back-btn" data-action="back">
+          <button class="back-btn" data-action="back" aria-label="Back to collection">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
@@ -48,6 +48,15 @@ export default class ObjectDetailPage {
         <div class="detail-content">
           ${this.object.hasModel ? `
             <div class="viewer-section">
+              <!-- Interactive Hint -->
+              <div class="viewer-hint" id="viewer-hint">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4M12 8h.01"/>
+                </svg>
+                <span>Drag to rotate • Scroll to zoom</span>
+              </div>
+              
               <div class="viewer-container" id="three-viewer"></div>
               <div class="viewer-status" id="viewer-status">
                 <div class="loader"></div>
@@ -74,6 +83,15 @@ export default class ObjectDetailPage {
           `}
 
           <div class="detail-info">
+            <!-- Breadcrumb Navigation -->
+            <nav class="breadcrumb" aria-label="Breadcrumb">
+              <a href="#/" class="breadcrumb-link">Home</a>
+              <span class="breadcrumb-separator">›</span>
+              <a href="#/collection" class="breadcrumb-link">Collection</a>
+              <span class="breadcrumb-separator">›</span>
+              <span class="breadcrumb-current">${this.object.title}</span>
+            </nav>
+            
             <div class="info-header">
               <div class="info-meta">
                 <span class="meta-item"><strong>Period:</strong> ${this.object.period}</span>
@@ -94,6 +112,17 @@ export default class ObjectDetailPage {
                   <h3>✨ AR Experiences Available</h3>
                   <p>View this object in augmented reality using one of the modes below.</p>
                   <p class="ar-disclaimer">Note: AR uses your camera and may drain battery.</p>
+                </div>
+                
+                <!-- Step-by-step Instructions -->
+                <div class="ar-instructions">
+                  <h4>How to use AR:</h4>
+                  <ol>
+                    <li>Choose an AR mode below</li>
+                    <li>Allow camera access when prompted</li>
+                    <li>Point your camera at the marker or surface</li>
+                    <li>Use touch gestures to interact with the 3D model</li>
+                  </ol>
                 </div>
                 
                 <div class="ar-buttons-grid">

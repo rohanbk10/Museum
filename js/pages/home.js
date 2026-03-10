@@ -35,7 +35,7 @@ export default class HomePage {
             <p class="museum-subtitle">Discover History Through Technology</p>
 
             <nav class="home-nav">
-              <button class="home-btn" data-route="/collection">
+              <button class="home-btn" data-route="/collection" aria-label="Explore art collection">
                 <span class="btn-icon">🎨</span>
                 <div class="btn-content">
                   <span class="btn-text">Explore Art Collection</span>
@@ -43,7 +43,7 @@ export default class HomePage {
                 </div>
               </button>
 
-              <button class="home-btn" data-route="/map">
+              <button class="home-btn" data-route="/map" aria-label="View museum map">
                 <span class="btn-icon">🗺️</span>
                 <div class="btn-content">
                   <span class="btn-text">View Museum Map</span>

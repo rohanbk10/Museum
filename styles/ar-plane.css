@@ -131,8 +131,8 @@
 }
 
 .diagnostic-close {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   background: rgba(255, 255, 255, 0.1);
   border: none;
   border-radius: 50%;
@@ -143,6 +143,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.diagnostic-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.diagnostic-close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+.diagnostic-close:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 .diagnostic-info {

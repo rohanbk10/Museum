@@ -49,19 +49,27 @@
   --border-light: rgba(255, 255, 255, 0.08);
   --border-subtle: rgba(0, 0, 0, 0.1);
   
-  /* Shadows */
+  /* Shadows & Elevation */
+  --elevation-0: none;
+  --elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --elevation-2: 0 2px 6px rgba(0, 0, 0, 0.16);
+  --elevation-3: 0 4px 12px rgba(0, 0, 0, 0.20);
+  --elevation-4: 0 8px 24px rgba(0, 0, 0, 0.24);
+  
+  /* Legacy shadows for compatibility */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
   
-  /* Spacing (Museum Editorial) */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
-  --spacing-editorial: 80px;
+  /* Spacing (8px Grid System) */
+  --spacing-2xs: 4px;   /* Exception for micro adjustments */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --spacing-2xl: 64px;
+  --spacing-3xl: 80px;
   --spacing-section: 120px;
   
   /* Border Radius */
@@ -147,7 +155,7 @@ h4 { font-size: 22px; }
 
 p {
   margin-bottom: var(--spacing-md);
-  line-height: 1.8;
+  line-height: 1.5;
   color: var(--text-secondary);
 }
 
@@ -178,15 +186,20 @@ button:disabled {
   cursor: not-allowed;
 }
 
+button:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
   padding: 14px 24px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-weight: 500;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   min-height: 48px;
   min-width: 48px;
 }
@@ -196,16 +209,19 @@ button:disabled {
   background: var(--museum-green);
   color: white;
   border: none;
+  box-shadow: var(--elevation-1);
+  transition: all var(--transition-base);
 }
 
 .btn-primary:hover, .btn-museum-primary:hover {
   background: var(--museum-green-light);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-3);
 }
 
 .btn-primary:active, .btn-museum-primary:active {
   transform: translateY(0);
+  box-shadow: var(--elevation-1);
 }
 
 /* Museum Secondary Button */
@@ -226,12 +242,19 @@ button:disabled {
   background: var(--accent-gold);
   color: white;
   border: none;
+  box-shadow: var(--elevation-1);
+  transition: all var(--transition-base);
 }
 
 .btn-accent:hover {
   background: var(--accent-gold-light);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-3);
+}
+
+.btn-accent:active {
+  transform: translateY(0);
+  box-shadow: var(--elevation-1);
 }
 
 /* ===== Back Button (Shared) ===== */
@@ -239,21 +262,30 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   background: var(--surface);
   border-radius: 50%;
   color: var(--text);
   transition: all var(--transition-base);
+  box-shadow: var(--elevation-1);
 }
 
 .back-btn:hover {
   background: var(--surface-hover);
   transform: scale(1.05);
+  box-shadow: var(--elevation-2);
 }
 
 .back-btn:active {
   transform: scale(0.95);
+  box-shadow: var(--elevation-0);
+}
+
+/* Focus indicator for accessibility */
+.back-btn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 /* ===== Page Headers (Shared) ===== */
@@ -264,13 +296,14 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;
+  min-height: 64px;
 }
 
 .page-header h1,
@@ -281,10 +314,11 @@ button:disabled {
   margin: 0;
   flex: 1;
   text-align: center;
+  letter-spacing: -0.3px;
 }
 
 .header-spacer {
-  width: 44px;
+  width: 48px;
 }
 
 /* ===== Animations ===== */

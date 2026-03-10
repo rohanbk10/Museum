@@ -11,18 +11,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-xl) var(--spacing-editorial);
+  padding: var(--spacing-lg) var(--spacing-3xl);
   background: var(--bg-white);
   border-bottom: 1px solid var(--border-subtle);
   position: sticky;
   top: 0;
   z-index: 100;
+  min-height: 72px;
 }
 
 .map-header h1 {
   font-size: 32px;
   font-weight: 500;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.8px;
   color: var(--text-primary);
   margin: 0;
   flex: 1;
@@ -30,7 +31,7 @@
 }
 
 .map-content {
-  padding: var(--spacing-editorial);
+  padding: var(--spacing-3xl) var(--spacing-lg);
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -39,18 +40,18 @@
   text-align: center;
   color: var(--text-secondary);
   font-size: 16px;
-  line-height: 1.8;
-  margin-bottom: var(--spacing-section);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-2xl);
 }
 
 /* Map Container */
 .map-container {
   background: var(--bg-white);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-section);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+  box-shadow: var(--elevation-2);
 }
 
 .museum-map {
@@ -100,38 +101,38 @@
 .map-legend {
   background: var(--bg-white);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-xl);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--elevation-1);
 }
 
 .map-legend h3 {
   font-size: 20px;
   font-weight: 600;
   color: var(--museum-green);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
   letter-spacing: -0.5px;
 }
 
 .legend-items {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
   font-size: 15px;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .legend-color {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
@@ -158,14 +159,14 @@
 .zone-modal-content {
   background: var(--bg-white);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-2xl);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xl);
   max-width: 500px;
   width: 100%;
   position: relative;
   transform: scale(0.95);
   transition: transform var(--transition-base);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--elevation-4);
 }
 
 .zone-modal.visible .zone-modal-content {
@@ -176,8 +177,8 @@
   position: absolute;
   top: var(--spacing-lg);
   right: var(--spacing-lg);
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -196,6 +197,15 @@
   color: white;
   border-color: var(--museum-green);
   transform: rotate(90deg);
+}
+
+.zone-modal-close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+.zone-modal-close:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 .zone-modal-content h2 {

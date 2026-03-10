@@ -90,8 +90,8 @@
   position: fixed;
   top: var(--spacing-md);
   right: var(--spacing-md);
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,6 +110,11 @@
 
 .ar-settings-btn:active {
   transform: rotate(45deg) scale(0.95);
+}
+
+.ar-settings-btn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 /* Version */
@@ -180,8 +185,8 @@
 }
 
 .panel-close {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -196,6 +201,15 @@
 .panel-close:hover {
   background: var(--surface-hover);
   transform: rotate(90deg);
+}
+
+.panel-close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+.panel-close:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 .panel-body {
@@ -294,12 +308,12 @@
   padding: var(--spacing-md);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: var(--text);
   font-size: 0.95rem;
   font-weight: 600;
   transition: all var(--transition-fast);
-  min-height: 44px;
+  min-height: 48px;
 }
 
 .ctrl-btn:hover {
@@ -311,6 +325,11 @@
   background: var(--primary);
   border-color: var(--primary);
   transform: scale(0.95);
+}
+
+.ctrl-btn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 /* Prevent pull-to-refresh */

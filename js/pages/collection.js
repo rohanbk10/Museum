@@ -13,11 +13,12 @@ export default class CollectionPage {
 
   render() {
     const objectCards = collection.map(obj => this.renderCard(obj)).join('');
+    const arCount = collection.filter(obj => obj.hasAR).length;
     
     return `
       <div class="collection-page">
         <header class="collection-header">
-          <button class="back-btn" data-action="back">
+          <button class="back-btn" data-action="back" aria-label="Back to home">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
@@ -27,10 +28,27 @@ export default class CollectionPage {
         </header>
 
         <div class="collection-content">
+          <!-- Breadcrumb Navigation -->
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="#/" class="breadcrumb-link">Home</a>
+            <span class="breadcrumb-separator">›</span>
+            <span class="breadcrumb-current">Collection</span>
+          </nav>
+          
           <p class="collection-intro">
             Explore our curated selection of historical artifacts from ancient civilizations.
             Objects marked with ✨ feature immersive AR experiences.
           </p>
+          
+          <!-- Progress Indicator -->
+          <div class="collection-stats">
+            <span class="stat-badge">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z"/>
+              </svg>
+              ${arCount} AR experiences available
+            </span>
+          </div>
           
           <div class="collection-grid">
             ${objectCards}

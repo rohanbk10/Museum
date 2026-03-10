@@ -22,7 +22,7 @@
 .brand-panel {
   background: var(--museum-green);
   color: white;
-  padding: var(--spacing-editorial);
+  padding: var(--spacing-3xl);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -55,8 +55,8 @@
   font-size: 52px;
   font-weight: 500;
   line-height: 1.1;
-  letter-spacing: -1px;
-  margin-bottom: var(--spacing-lg);
+  letter-spacing: -1.5px;
+  margin-bottom: var(--spacing-md);
   opacity: 0;
   animation: fadeInUp 0.8s ease forwards 0.4s;
 }
@@ -69,14 +69,15 @@
   margin-bottom: var(--spacing-2xl);
   opacity: 0;
   animation: fadeInUp 0.8s ease forwards 0.6s;
+  line-height: 1.5;
 }
 
 /* Home Navigation */
 .home-nav {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
   opacity: 0;
   animation: fadeInUp 0.8s ease forwards 0.8s;
 }
@@ -85,16 +86,17 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-lg) var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: white;
   text-align: left;
   transition: all var(--transition-base);
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  min-height: 72px;
 }
 
 .home-btn::before {
@@ -113,6 +115,16 @@
 .home-btn:hover {
   border-color: var(--accent-gold);
   transform: translateX(8px);
+  box-shadow: var(--elevation-2);
+}
+
+.home-btn:active {
+  transform: translateX(4px);
+}
+
+.home-btn:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
 }
 
 .btn-icon {
@@ -127,30 +139,31 @@
 .btn-text {
   font-size: 18px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   display: block;
   margin-bottom: 4px;
 }
 
 .btn-subtitle {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.75);
   display: block;
+  line-height: 1.4;
 }
 
 /* Home Badge */
 .home-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
   background: rgba(200, 169, 106, 0.2);
   border: 1px solid var(--accent-gold);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: var(--accent-gold);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   opacity: 0;
   animation: fadeInUp 0.8s ease forwards 1s;
 }
@@ -203,9 +216,9 @@
 /* Footer Note */
 .home-footer {
   position: absolute;
-  bottom: var(--spacing-xl);
-  left: var(--spacing-editorial);
-  right: var(--spacing-editorial);
+  bottom: var(--spacing-lg);
+  left: var(--spacing-3xl);
+  right: var(--spacing-3xl);
   text-align: center;
   opacity: 0;
   animation: fadeIn 0.8s ease forwards 1.2s;
@@ -215,7 +228,8 @@
   font-size: 13px;
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
 }
 
 /* Animations */
@@ -246,7 +260,7 @@
   }
   
   .brand-panel {
-    padding: 60px 40px;
+    padding: var(--spacing-2xl) var(--spacing-xl);
   }
   
   .museum-title {
@@ -261,7 +275,7 @@
   }
   
   .brand-panel {
-    padding: 60px 24px;
+    padding: var(--spacing-2xl) var(--spacing-lg);
     min-height: calc(100vh - 300px);
   }
   
@@ -271,6 +285,7 @@
   
   .museum-title {
     font-size: 36px;
+    letter-spacing: -1px;
   }
   
   .museum-subtitle {
@@ -278,7 +293,8 @@
   }
   
   .home-btn {
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-md);
+    min-height: 64px;
   }
   
   .btn-text {
@@ -294,7 +310,7 @@
     bottom: auto;
     left: auto;
     right: auto;
-    margin-top: var(--spacing-xl);
+    margin-top: var(--spacing-lg);
   }
 }
 
@@ -304,14 +320,19 @@
   }
   
   .home-nav {
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
   }
   
   .home-btn {
     gap: var(--spacing-sm);
+    min-height: 56px;
   }
   
   .btn-icon {
     font-size: 24px;
+  }
+  
+  .brand-panel {
+    padding: var(--spacing-lg) var(--spacing-md);
   }
 }
