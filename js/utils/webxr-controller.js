@@ -22,22 +22,30 @@ export default class WebXRController {
   }
 
   async startSession(container, modelPath, callbacks = {}) {
+    console.log('[WebXR] Starting session...');
+    
     if (this.isActive) {
-      console.warn('WebXR session already active');
+      console.warn('[WebXR] Session already active');
       return;
     }
 
     // Check WebXR support
+    console.log('[WebXR] Navigator.xr available:', !!navigator.xr);
     if (!navigator.xr) {
       throw new Error('WebXR not supported on this browser');
     }
 
+    console.log('[WebXR] Checking immersive-ar support...');
     const supported = await navigator.xr.isSessionSupported('immersive-ar');
+    console.log('[WebXR] Immersive AR supported:', supported);
+    
     if (!supported) {
       throw new Error('Immersive AR not supported on this device');
     }
 
     try {
+      console.log('[WebXR] Initializing Three.js scene...');
+      
       // Initialize Three.js scene
       this.scene = new THREE.Scene();
 
@@ -60,20 +68,39 @@ export default class WebXRController {
 
       // Load model template
       if (modelPath) {
+        console.log('[WebXR] Loading 3D model...');
         await this.loadModelTemplate(modelPath);
+        console.log('[WebXR] Model loaded successfully');
       }
 
-      // Request XR session
-      this.session = await navigator.xr.requestSession('immersive-ar', {
-        requiredFeatures: ['hit-test'],
-        optionalFeatures: ['dom-overlay'],
-        domOverlay: { root: document.body }
-      });
+      // Request XR session with fallback
+      console.log('[WebXR] Requesting XR session with hit-test...');
+      try {
+        this.session = await navigator.xr.requestSession('immersive-ar', {
+          requiredFeatures: ['hit-test'],
+          optionalFeatures: ['dom-overlay'],
+          domOverlay: { root: document.body }
+        });
+        console.log('[WebXR] Session granted with hit-test');
+      } catch (error) {
+        console.warn('[WebXR] Hit-test not available, trying without...', error.name);
+        
+        // Fallback: Try without hit-test as required feature
+        this.session = await navigator.xr.requestSession('immersive-ar', {
+          optionalFeatures: ['hit-test', 'dom-overlay'],
+          domOverlay: { root: document.body }
+        });
+        console.log('[WebXR] Session granted without hit-test requirement');
+      }
 
+      console.log('[WebXR] Session created:', !!this.session);
+      
       await this.renderer.xr.setSession(this.session);
+      console.log('[WebXR] Renderer XR session set');
 
       // Get reference space
       this.referenceSpace = await this.session.requestReferenceSpace('local');
+      console.log('[WebXR] Reference space obtained');
 
       // Setup hit-test source on first frame
       this.session.requestAnimationFrame((time, frame) => {
@@ -81,6 +108,7 @@ export default class WebXRController {
       });
 
       this.isActive = true;
+      console.log('[WebXR] Session started successfully!');
 
       if (callbacks.onStart) {
         callbacks.onStart();
@@ -88,6 +116,7 @@ export default class WebXRController {
 
       // Handle session end
       this.session.addEventListener('end', () => {
+        console.log('[WebXR] Session ended');
         this.isActive = false;
         if (callbacks.onEnd) {
           callbacks.onEnd();
@@ -95,7 +124,8 @@ export default class WebXRController {
       });
 
     } catch (error) {
-      console.error('Failed to start WebXR session:', error);
+      console.error('[WebXR] Session request failed:', error.name, error.message);
+      console.error('[WebXR] Full error:', error);
       await this.stopSession();
       throw error;
     }

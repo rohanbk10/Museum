@@ -43,6 +43,17 @@ export default class ARPlanePage {
       <div class="ar-plane-page">
         <div id="webxr-container" class="webxr-container"></div>
         
+        <!-- Start AR Overlay - Must be clicked to start session -->
+        <div class="webxr-start-overlay" id="webxr-start-overlay">
+          <div class="start-content">
+            <h2>Ready to Place in AR?</h2>
+            <p>This will activate your camera to place ${this.object.title} on real surfaces</p>
+            <button class="webxr-start-btn" data-action="start-session">
+              Start AR Session
+            </button>
+          </div>
+        </div>
+        
         <div class="webxr-overlay">
           <button class="exit-webxr-btn" data-action="exit">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -52,7 +63,7 @@ export default class ARPlanePage {
             Exit AR
           </button>
 
-          <div class="webxr-instructions" id="webxr-instructions">
+          <div class="webxr-instructions" id="webxr-instructions" style="display: none;">
             <div class="instruction-content">
               <div class="instruction-icon">📱</div>
               <h3>Scan Your Space</h3>
@@ -65,7 +76,7 @@ export default class ARPlanePage {
             </div>
           </div>
 
-          <div class="webxr-status" id="webxr-status">
+          <div class="webxr-status" id="webxr-status" style="display: none;">
             <span class="status-icon">🔍</span>
             <span class="status-text">Initializing AR...</span>
           </div>
@@ -101,11 +112,34 @@ export default class ARPlanePage {
     // Setup UI handlers
     this.setupUIHandlers();
 
-    // Start WebXR session
-    await this.startWebXR();
+    // Don't auto-start - wait for user to click start button
+    // WebXR requires user gesture to request session
   }
 
   setupUIHandlers() {
+    // Start AR button - MUST be clicked to start session (user gesture required)
+    const startBtn = document.querySelector('[data-action="start-session"]');
+    if (startBtn) {
+      startBtn.addEventListener('click', async () => {
+        startBtn.disabled = true;
+        startBtn.textContent = 'Starting...';
+        
+        try {
+          await this.startWebXR();
+          
+          // Hide start overlay on success
+          const overlay = document.getElementById('webxr-start-overlay');
+          if (overlay && this.webxrController?.isSessionActive()) {
+            overlay.style.display = 'none';
+          }
+        } catch (error) {
+          // Re-enable button on error so user can try again
+          startBtn.disabled = false;
+          startBtn.textContent = 'Try Again';
+        }
+      });
+    }
+
     // Exit button
     const exitBtn = document.querySelector('[data-action="exit"]');
     if (exitBtn) {
@@ -138,12 +172,15 @@ export default class ARPlanePage {
 
     if (!container) {
       console.error('WebXR container not found');
+      this.showError('Setup Error', 'AR container not found. Please try refreshing the page.');
       return;
     }
 
     try {
       this.webxrController = new WebXRController();
 
+      // Show status now that session is starting
+      if (status) status.style.display = 'block';
       this.updateStatus('Starting AR session...', '🚀');
 
       await this.webxrController.startSession(
@@ -152,12 +189,16 @@ export default class ARPlanePage {
         {
           onStart: () => {
             this.updateStatus('Point camera at a surface', '📱');
+            
+            // Show instructions
             if (instructions) {
+              instructions.style.display = 'block';
               setTimeout(() => {
                 instructions.style.opacity = '0';
                 setTimeout(() => instructions.style.display = 'none', 300);
               }, 3000);
             }
+            
             if (controls) {
               controls.style.display = 'flex';
             }
@@ -172,19 +213,32 @@ export default class ARPlanePage {
     } catch (error) {
       console.error('Failed to start WebXR:', error);
       
+      // Determine user-friendly error message
       let errorMessage = 'Failed to start AR';
-      if (error.message.includes('not supported')) {
-        errorMessage = 'AR not supported on this device';
+      let errorDetails = error.message;
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Camera permission denied';
+        errorDetails = 'Please allow camera access in your browser settings and try again.';
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = 'AR not supported';
+        errorDetails = 'Your device or browser doesn\'t support WebXR AR. Try using Chrome on Android.';
+      } else if (error.message.includes('not supported')) {
+        errorMessage = 'AR not supported';
+        errorDetails = 'Your device or browser doesn\'t support WebXR AR. This feature requires Android Chrome with ARCore.';
+      } else if (error.message.includes('secure context')) {
+        errorMessage = 'Secure connection required';
+        errorDetails = 'WebXR requires HTTPS. Please ensure you\'re accessing the site securely.';
       } else if (error.message.includes('permission')) {
         errorMessage = 'Camera permission denied';
+        errorDetails = 'Please allow camera access and try again.';
       }
 
-      this.updateStatus(errorMessage, '⚠️');
-
-      // Show error and exit button
-      if (status) {
-        status.style.background = 'rgba(255, 59, 48, 0.9)';
-      }
+      // Show error prominently
+      this.showError(errorMessage, errorDetails);
+      
+      // Re-throw to let button handler know it failed
+      throw error;
     }
   }
 
@@ -285,6 +339,41 @@ export default class ARPlanePage {
       
       if (iconEl) iconEl.textContent = icon;
       if (textEl) textEl.textContent = text;
+    }
+  }
+
+  showError(title, details) {
+    const startOverlay = document.getElementById('webxr-start-overlay');
+    if (startOverlay) {
+      startOverlay.innerHTML = `
+        <div class="error-content">
+          <div class="error-icon">⚠️</div>
+          <h2>${title}</h2>
+          <p>${details}</p>
+          <button class="webxr-start-btn" onclick="window.history.back()">
+            Go Back
+          </button>
+          <button class="webxr-start-btn secondary" onclick="location.reload()">
+            Try Again
+          </button>
+        </div>
+      `;
+      startOverlay.style.display = 'flex';
+    }
+    
+    this.updateStatus(title, '⚠️');
+    
+    // Hide instructions
+    const instructions = document.getElementById('webxr-instructions');
+    if (instructions) {
+      instructions.style.display = 'none';
+    }
+    
+    // Show status with error styling
+    const status = document.getElementById('webxr-status');
+    if (status) {
+      status.style.display = 'block';
+      status.style.background = 'rgba(255, 59, 48, 0.9)';
     }
   }
 
