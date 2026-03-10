@@ -37,65 +37,15 @@ export default class WebXRController {
       throw new Error('WebXR not supported on this browser');
     }
 
-    this.log('[WebXR] Checking immersive-ar support...');
-    const supported = await navigator.xr.isSessionSupported('immersive-ar');
-    this.log(`[WebXR] Immersive AR supported: ${supported}`);
-    
-    if (!supported) {
-      throw new Error('Immersive AR not supported on this device');
-    }
-
-    // Probe ARCore functionality with minimal session request
-    this.log('[WebXR] Checking ARCore functionality via session probe...');
-    try {
-      const testSession = await navigator.xr.requestSession('immersive-ar', {
-        requiredFeatures: ['viewer']  // viewer is the most basic possible
-      });
-      this.log('[WebXR] ✓ Basic viewer space works - ARCore is functional');
-      await testSession.end();
-    } catch (e) {
-      this.log(`[WebXR] ✗ Even viewer space failed: ${e.name} - ${e.message}`);
-      this.log('[WebXR] ARCore is not functional - may need update from Play Store');
-      throw new Error(
-        'ARCore is not functioning properly. Please try:\n' +
-        '1. Update "Google Play Services for AR" (ARCore) from Play Store\n' +
-        '2. Restart Chrome\n' +
-        '3. Ensure camera permissions are granted\n\n' +
-        `Technical error: ${e.name}`
-      );
-    }
+    // IMPORTANT (User Activation):
+    // Do not `await` anything unrelated before calling `requestSession()`.
+    // User activation is only valid for the immediate call stack after a tap/click,
+    // and can be lost across awaits/microtasks. We rely on requestSession error
+    // handling to report lack of support.
 
     try {
-      this.log('[WebXR] Initializing Three.js scene...');
-      
-      // Initialize Three.js scene
-      this.scene = new THREE.Scene();
-
-      this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-
-      this.renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true
-      });
-      this.renderer.setPixelRatio(window.devicePixelRatio);
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.renderer.xr.enabled = true;
-      container.appendChild(this.renderer.domElement);
-
-      // Setup lighting
-      this.setupLights();
-
-      // Create reticle
-      this.createReticle();
-
-      // Load model template
-      if (modelPath) {
-        this.log('[WebXR] Loading 3D model...');
-        await this.loadModelTemplate(modelPath);
-        this.log('[WebXR] Model loaded successfully');
-      }
-
-      // Request XR session with proper feature requirements
+      // The real session request MUST be the first awaited action after user gesture.
+      // Do not probe or load models before this call.
       this.log('[WebXR] Requesting XR session...');
       try {
         // Try with 'local' as required feature (needed for hit-test)
@@ -117,9 +67,30 @@ export default class WebXRController {
       }
 
       this.log(`[WebXR] Session created: ${!!this.session}`);
+
+      this.log('[WebXR] Initializing Three.js scene...');
+      
+      // Initialize Three.js scene (sync work only here)
+      this.scene = new THREE.Scene();
+      this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+      this.renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+      });
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.xr.enabled = true;
+      container.appendChild(this.renderer.domElement);
       
       await this.renderer.xr.setSession(this.session);
       this.log('[WebXR] Renderer XR session set');
+
+      // Setup lighting
+      this.setupLights();
+
+      // Create reticle
+      this.createReticle();
 
       // Get reference space with fallbacks
       this.log('[WebXR] Requesting reference space...');
@@ -147,6 +118,13 @@ export default class WebXRController {
         this.log(`[WebXR] ⚠ Viewer space not available: ${error.message}`);
         this.log('[WebXR] Hit-test will be disabled, but AR will still work');
         this.viewerSpace = null;
+      }
+
+      // Load model template after session is created (async / network work)
+      if (modelPath) {
+        this.log('[WebXR] Loading 3D model...');
+        await this.loadModelTemplate(modelPath);
+        this.log('[WebXR] Model loaded successfully');
       }
 
       // Setup hit-test source on first frame

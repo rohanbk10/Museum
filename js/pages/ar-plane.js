@@ -210,26 +210,29 @@ export default class ARPlanePage {
     // Start AR button - MUST be clicked to start session (user gesture required)
     const startBtn = document.querySelector('[data-action="start-session"]');
     if (startBtn) {
-      startBtn.addEventListener('click', async () => {
+      startBtn.addEventListener('click', () => {
         startBtn.disabled = true;
         startBtn.textContent = 'Starting...';
         
         this.log('User clicked Start AR Session button');
         
-        try {
-          await this.startWebXR();
-          
-          // Hide start overlay on success
-          const overlay = document.getElementById('webxr-start-overlay');
-          if (overlay && this.webxrController?.isSessionActive()) {
-            overlay.style.display = 'none';
-          }
-        } catch (error) {
-          this.log(`Failed to start: ${error.message}`, 'error');
-          // Re-enable button on error so user can try again
-          startBtn.disabled = false;
-          startBtn.textContent = 'Try Again';
-        }
+        // IMPORTANT (User Activation):
+        // Do not `await` here before requestSession(). Start the flow synchronously
+        // and attach handlers to the returned promise instead.
+        this.startWebXR()
+          .then(() => {
+            // Hide start overlay on success
+            const overlay = document.getElementById('webxr-start-overlay');
+            if (overlay && this.webxrController?.isSessionActive()) {
+              overlay.style.display = 'none';
+            }
+          })
+          .catch((error) => {
+            this.log(`Failed to start: ${error.message}`, 'error');
+            // Re-enable button on error so user can try again
+            startBtn.disabled = false;
+            startBtn.textContent = 'Try Again';
+          });
       });
     }
 
