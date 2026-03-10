@@ -420,6 +420,8 @@ export default class ARPlanePage {
         container,
         this.object.modelPath,
         {
+          // Use real-world sizing (meters) when available
+          arTargetHeightM: typeof this.object.arTargetHeightM === 'number' ? this.object.arTargetHeightM : undefined,
           onStart: () => {
             this.log('✓ AR session started successfully!');
             this.updateStatus('Point camera at a surface', '📱');

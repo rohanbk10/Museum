@@ -8,18 +8,25 @@ export const collection = [
     id: 'buddha',
     title: 'Buddha Statue',
     period: '12th Century',
-    description: 'Universal Buddha in the Gesture of Ultimate Enlightenment (Vairocana in Uttarabodhimudra). Ming dynasty (16th century), China. Bronze, gilded, and pigments. From the Crow Collection of Asian Art (Accession 1976.3).',
-    longDescription: `Title: Universal Buddha in the Gesture of Ultimate Enlightenment (Vairocana in Uttarabodhimudra)
-Culture/Country: China
-Period: Ming dynasty (1368-1644), 16th century
-Medium: Bronze, gilded, and pigments
-Collection Title: Crow Collection of Asian Art
-Accession Number: 1976.3`,
+    description: 'A monumental image of Vairocana—often understood as the “Universal Buddha”—shown in the uttarabodhimudra, a gesture associated with ultimate enlightenment. Gilded bronze with pigments, Ming dynasty China (16th century). Crow Collection of Asian Art (Accession 1976.3).',
+    longDescription: `This sculpture represents Vairocana, a central figure in Mahāyāna and esoteric Buddhist traditions, embodying universal Buddhahood and the cosmic nature of enlightenment. The uttarabodhimudra (“gesture of supreme awakening”)—with the index fingers raised and joined—signals the attainment of ultimate wisdom and is frequently associated with Vairocana in later East Asian Buddhist art.
+
+Cast in bronze and richly gilded, with traces of pigments that once enlivened its surface, the work reflects Ming dynasty patronage of Buddhism and the period’s taste for luminous, gold-toned devotional images. Such objects were intended to project spiritual radiance and presence, whether used in temple settings or private worship.
+
+Facts:
+- Title: Universal Buddha in the Gesture of Ultimate Enlightenment (Vairocana in Uttarabodhimudra)
+- Culture/Country: China
+- Period: Ming dynasty (1368–1644), 16th century
+- Medium: Bronze, gilded, and pigments
+- Collection Title: Crow Collection of Asian Art
+- Accession Number: 1976.3`,
     thumbnail: './assets/thumbnails/buddha.jpg',
     hasModel: true,
     hasAR: true,
     modelPath: './assets/buddha.glb',
     targetIndex: 0,
+    // Approx. real-world height for AR placement (5ft ≈ 1.52m)
+    arTargetHeightM: 1.52,
     material: 'Sandstone',
     origin: 'Cambodia',
     dimensions: '45cm × 30cm × 25cm'
@@ -28,15 +35,27 @@ Accession Number: 1976.3`,
     id: 'gandharan',
     title: 'Gandharan Head (Fragment)',
     period: 'Gandhara (1st–3rd Century CE)',
-    description: 'A sculpted head fragment from the Gandharan region (present-day Pakistan), carved in the Greco-Buddhist tradition. The refined facial features and stylized hair reflect a fusion of Hellenistic and South Asian artistic influences.',
-    longDescription: `This fragmentary head is a compelling example of Gandharan sculpture, produced in a region that became a crossroads of cultures along ancient trade routes.\n\nGandharan artists blended South Asian iconography with Hellenistic naturalism, resulting in works with lifelike facial modeling, carefully rendered hair, and a distinctive sense of volume and proportion.\n\nThough the original statue was damaged over time, this surviving head preserves the craftsmanship and cultural synthesis that define the Greco-Buddhist tradition of Gandhara.`,
+    description: 'A bodhisattva head fragment carved in gray schist from Gandhara, a crossroads region of Northwest India (present-day Pakistan) celebrated for Greco-Buddhist art. 3rd century. Crow Collection of Asian Art.',
+    longDescription: `Carved from gray schist, this head comes from Gandhara—an important cultural and artistic center where South Asian Buddhist imagery blended with Hellenistic and West Asian visual traditions. Gandharan sculptors favored naturalistic facial modeling, gently downcast eyes, and carefully articulated hair, creating figures that feel both idealized and vividly present.
+
+As a bodhisattva (an enlightened being who postpones final nirvāṇa to aid others), the figure would originally have formed part of a larger devotional sculpture. Although the statue is now fragmentary, the surviving head preserves the expressive calm and technical refinement that made Gandharan workshops influential across the Buddhist world.
+
+Facts:
+- Title: Bodhisattva
+- Culture/Country: Northwest India, Gandhara Region
+- Period: 3rd century
+- Medium: Gray schist
+- Dimensions: 19 x 17 x 13 1/2 in.
+- Collection: Crow Collection of Asian Art`,
     thumbnail: './assets/thumbnails/gandharan.jpg',
     hasModel: true,
     hasAR: false,
     modelPath: './assets/gandharan.glb',
-    material: 'Schist Stone',
-    origin: 'Gandhara (Present-day Pakistan)',
-    dimensions: 'Fragment (approx. life-size)'
+    // Approx. real-world height for AR placement (19 in ≈ 0.48m)
+    arTargetHeightM: 0.48,
+    material: 'Gray schist',
+    origin: 'Northwest India, Gandhara Region',
+    dimensions: '19 x 17 x 13 1/2 in.'
   },
   {
     id: 'vase',

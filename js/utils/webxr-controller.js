@@ -17,6 +17,7 @@ export default class WebXRController {
     this.hitTestSourceRequested = false;
     this.referenceSpace = null;
     this.viewerSpace = null; // Store viewer space for hit-test
+    this.arTargetHeightM = null;
     this.placedModels = [];
     this.modelTemplate = null;
     this.isActive = false;
@@ -42,6 +43,12 @@ export default class WebXRController {
     // User activation is only valid for the immediate call stack after a tap/click,
     // and can be lost across awaits/microtasks. We rely on requestSession error
     // handling to report lack of support.
+
+    // Store per-session AR sizing hint (in meters). If not provided, defaults apply.
+    this.arTargetHeightM =
+      callbacks && typeof callbacks.arTargetHeightM === 'number'
+        ? callbacks.arTargetHeightM
+        : null;
 
     try {
       // The real session request MUST be the first awaited action after user gesture.
@@ -248,7 +255,9 @@ export default class WebXRController {
           const size = new THREE.Vector3();
           box.getSize(size);
           const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 0.3 / maxDim; // ~30cm size
+          // Default to ~30cm if no real-world target height was provided.
+          const targetHeightM = this.arTargetHeightM || 0.3;
+          const scale = targetHeightM / maxDim;
           this.modelTemplate.scale.setScalar(scale);
 
           // Optimize materials
