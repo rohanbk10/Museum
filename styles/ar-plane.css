@@ -9,7 +9,8 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #000;
+  /* Must be transparent so XR camera feed shows through */
+  background: transparent;
   z-index: 9999;
 }
 
@@ -20,11 +21,15 @@
   width: 100%;
   height: 100%;
   z-index: 0;
+  background: transparent;
 }
 
 /* Ensure WebXR canvas never paints an opaque background */
 .webxr-container canvas {
   background: transparent !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
 /* Start AR Overlay */
