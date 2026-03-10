@@ -16,6 +16,7 @@ export default class WebXRController {
     this.hitTestSource = null;
     this.hitTestSourceRequested = false;
     this.referenceSpace = null;
+    this.viewerSpace = null; // Store viewer space for hit-test
     this.placedModels = [];
     this.modelTemplate = null;
     this.isActive = false;
@@ -114,6 +115,17 @@ export default class WebXRController {
           this.referenceSpace = await this.session.requestReferenceSpace('viewer');
           this.log('[WebXR] ✓ Got "viewer" reference space');
         }
+      }
+
+      // Request viewer space for hit-test (separate from reference space)
+      this.log('[WebXR] Requesting viewer space for hit-test...');
+      try {
+        this.viewerSpace = await this.session.requestReferenceSpace('viewer');
+        this.log('[WebXR] ✓ Got viewer space for hit-test');
+      } catch (error) {
+        this.log(`[WebXR] ⚠ Viewer space not available: ${error.message}`);
+        this.log('[WebXR] Hit-test will be disabled, but AR will still work');
+        this.viewerSpace = null;
       }
 
       // Setup hit-test source on first frame
@@ -222,10 +234,21 @@ export default class WebXRController {
     
     this.hitTestSourceRequested = true;
 
-    const session = frame.session;
-    const viewerSpace = await session.requestReferenceSpace('viewer');
+    // Check if viewer space is available
+    if (!this.viewerSpace) {
+      this.log('[WebXR] ⚠ Viewer space not available, hit-test disabled');
+      return;
+    }
 
-    this.hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+    try {
+      const session = frame.session;
+      this.hitTestSource = await session.requestHitTestSource({ space: this.viewerSpace });
+      this.log('[WebXR] ✓ Hit-test source created successfully');
+    } catch (error) {
+      this.log(`[WebXR] ⚠ Failed to create hit-test source: ${error.message}`);
+      this.log('[WebXR] AR will work without surface detection');
+      this.hitTestSource = null;
+    }
   }
 
   updateReticle(frame) {
@@ -367,6 +390,7 @@ export default class WebXRController {
     this.hitTestSource = null;
     this.hitTestSourceRequested = false;
     this.referenceSpace = null;
+    this.viewerSpace = null;
     this.placedModels = [];
     this.isActive = false;
 

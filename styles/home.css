@@ -271,12 +271,12 @@
 @media (max-width: 768px) {
   .home-hero {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 300px;
+    grid-template-rows: 200px auto;
   }
   
   .brand-panel {
-    padding: var(--spacing-2xl) var(--spacing-lg);
-    min-height: calc(100vh - 300px);
+    padding: var(--spacing-xl) var(--spacing-lg);
+    min-height: auto;
   }
   
   .brand-panel::after {
@@ -303,6 +303,7 @@
   
   .hero-image {
     order: -1;
+    min-height: 200px;
   }
   
   .home-footer {
@@ -311,12 +312,25 @@
     left: auto;
     right: auto;
     margin-top: var(--spacing-lg);
+    padding: var(--spacing-md) 0;
   }
 }
 
 @media (max-width: 480px) {
+  .home-hero {
+    grid-template-rows: 150px auto;
+  }
+  
+  .hero-image {
+    min-height: 150px;
+  }
+  
   .museum-title {
     font-size: 32px;
+  }
+  
+  .museum-subtitle {
+    font-size: 16px;
   }
   
   .home-nav {
@@ -326,6 +340,7 @@
   .home-btn {
     gap: var(--spacing-sm);
     min-height: 56px;
+    padding: var(--spacing-sm) var(--spacing-md);
   }
   
   .btn-icon {
@@ -334,5 +349,42 @@
   
   .brand-panel {
     padding: var(--spacing-lg) var(--spacing-md);
+  }
+  
+  .museum-logo svg {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (max-width: 360px) {
+  .museum-title {
+    font-size: 28px;
+  }
+  
+  .museum-subtitle {
+    font-size: 15px;
+  }
+  
+  .home-btn {
+    min-height: 52px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .btn-text {
+    font-size: 15px;
+  }
+  
+  .btn-subtitle {
+    font-size: 13px;
+  }
+  
+  .brand-panel {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+  
+  .home-badge {
+    font-size: 12px;
+    padding: 6px var(--spacing-sm);
   }
 }
