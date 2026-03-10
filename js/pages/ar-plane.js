@@ -17,6 +17,7 @@ export default class ARPlanePage {
     this.diagnosticLogs = [];
     this.scaleMultiplier = 1.5;
     this.heightOffsetM = 0.3;
+    this.hasPlacedObject = false;
   }
   
   log(message, type = 'info') {
@@ -646,17 +647,22 @@ export default class ARPlanePage {
     // Enable/disable place button based on reticle
     const placeBtn = document.querySelector('[data-action="place"]');
     if (placeBtn) {
-      placeBtn.disabled = !isReticleVisible;
-      placeBtn.style.opacity = isReticleVisible ? '1' : '0.5';
+      const canPlace = isReticleVisible && placedCount === 0;
+      placeBtn.disabled = !canPlace;
+      placeBtn.style.opacity = canPlace ? '1' : '0.5';
     }
   }
 
   placeModel() {
     if (!this.webxrController) return;
 
+    // Only allow a single placed object at a time.
+    if (this.hasPlacedObject) return;
+
     this.webxrController.placeModel()
       .then((model) => {
         if (!model) return;
+        this.hasPlacedObject = true;
         this.updateStatus('Object placed!', '✅');
         this.updatePlacementUI();
 
@@ -679,6 +685,7 @@ export default class ARPlanePage {
     if (!this.webxrController) return;
 
     this.webxrController.removeLastModel();
+    this.hasPlacedObject = false;
     this.updateStatus('Last placement removed', '↩️');
     this.updatePlacementUI();
   }
