@@ -99,9 +99,22 @@ export default class WebXRController {
       await this.renderer.xr.setSession(this.session);
       this.log('[WebXR] Renderer XR session set');
 
-      // Get reference space
-      this.referenceSpace = await this.session.requestReferenceSpace('local');
-      this.log('[WebXR] Reference space obtained');
+      // Get reference space with fallbacks
+      this.log('[WebXR] Requesting reference space...');
+      try {
+        this.referenceSpace = await this.session.requestReferenceSpace('local');
+        this.log('[WebXR] ✓ Got "local" reference space');
+      } catch (error) {
+        this.log(`[WebXR] "local" not supported, trying "local-floor"...`);
+        try {
+          this.referenceSpace = await this.session.requestReferenceSpace('local-floor');
+          this.log('[WebXR] ✓ Got "local-floor" reference space');
+        } catch (error2) {
+          this.log(`[WebXR] "local-floor" not supported, trying "viewer"...`);
+          this.referenceSpace = await this.session.requestReferenceSpace('viewer');
+          this.log('[WebXR] ✓ Got "viewer" reference space');
+        }
+      }
 
       // Setup hit-test source on first frame
       this.session.requestAnimationFrame((time, frame) => {
