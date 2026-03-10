@@ -366,6 +366,18 @@
   border-radius: var(--radius-md);
 }
 
+.webxr-height {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-width: 160px;
+  max-width: 220px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+}
+
 .scale-header {
   display: flex;
   align-items: baseline;

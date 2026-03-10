@@ -20,6 +20,10 @@ export default class WebXRController {
     this.arTargetHeightM = null;
     this.scaleMultiplier = 1;
     this.templateBaseScaleScalar = null;
+    this.heightOffsetM = 0;
+    this.facingOffsetQuat = new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(0, -160 * (Math.PI / 180), 0, 'YXZ')
+    );
     this.lastHitTestResult = null;
     this.anchors = [];
     this.placedModels = [];
@@ -56,7 +60,11 @@ export default class WebXRController {
     this.scaleMultiplier =
       callbacks && typeof callbacks.scaleMultiplier === 'number'
         ? this.clampScaleMultiplier(callbacks.scaleMultiplier)
-        : 1;
+        : 1.5;
+    this.heightOffsetM =
+      callbacks && typeof callbacks.heightOffsetM === 'number'
+        ? callbacks.heightOffsetM
+        : 0.0;
 
     try {
       // The real session request MUST be the first awaited action after user gesture.
@@ -316,6 +324,11 @@ export default class WebXRController {
     });
   }
 
+  setHeightOffset(offsetM) {
+    if (!Number.isFinite(offsetM)) return;
+    this.heightOffsetM = offsetM;
+  }
+
   async setupHitTestSource(frame) {
     if (this.hitTestSourceRequested) return;
     
@@ -394,7 +407,9 @@ export default class WebXRController {
         this.anchors.push({ anchor, object: model });
         // Initial pose set now; subsequent updates will come from anchor space each frame.
         model.position.copy(position);
-        model.quaternion.copy(quaternion);
+        model.position.y += this.heightOffsetM;
+        // Face the user similarly to marker AR: apply fixed Y rotation offset.
+        model.quaternion.multiplyQuaternions(quaternion, this.facingOffsetQuat);
         this.scene.add(model);
         this.placedModels.push(model);
         this.log('[WebXR] ✓ Created anchor for placed object');
@@ -405,7 +420,8 @@ export default class WebXRController {
     }
 
     model.position.copy(position);
-    model.quaternion.copy(quaternion);
+    model.position.y += this.heightOffsetM;
+    model.quaternion.multiplyQuaternions(quaternion, this.facingOffsetQuat);
 
     this.scene.add(model);
     this.placedModels.push(model);
@@ -422,14 +438,18 @@ export default class WebXRController {
       if (!anchor?.anchorSpace || !object) continue;
       const pose = frame.getPose(anchor.anchorSpace, this.referenceSpace);
       if (!pose) continue;
-      // Update position/quaternion from anchor pose, but preserve scale (set by slider).
+      // Update position/quaternion from anchor pose, but preserve scale (set by slider)
+      // and apply facing + height offsets.
       const m = new THREE.Matrix4().fromArray(pose.transform.matrix);
       const pos = new THREE.Vector3();
       const quat = new THREE.Quaternion();
       const scl = new THREE.Vector3();
       m.decompose(pos, quat, scl);
+      pos.y += this.heightOffsetM;
       object.position.copy(pos);
-      object.quaternion.copy(quat);
+      const finalQuat = new THREE.Quaternion();
+      finalQuat.multiplyQuaternions(quat, this.facingOffsetQuat);
+      object.quaternion.copy(finalQuat);
     }
   }
 

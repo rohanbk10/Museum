@@ -15,7 +15,8 @@ export default class ARPlanePage {
     this.webxrController = null;
     this.renderLoop = null;
     this.diagnosticLogs = [];
-    this.scaleMultiplier = 1;
+    this.scaleMultiplier = 1.5;
+    this.heightOffsetM = 0.3;
   }
   
   log(message, type = 'info') {
@@ -144,7 +145,7 @@ export default class ARPlanePage {
             <div class="webxr-scale" aria-label="Scale control">
               <div class="scale-header">
                 <span class="scale-label">Size</span>
-                <span class="scale-value" id="scale-value">1.0×</span>
+                <span class="scale-value" id="scale-value">1.5×</span>
               </div>
               <input
                 id="scale-slider"
@@ -153,8 +154,25 @@ export default class ARPlanePage {
                 min="1"
                 max="15"
                 step="0.1"
-                value="1"
+                value="1.5"
                 aria-label="Scale object size"
+              />
+            </div>
+
+            <div class="webxr-height" aria-label="Height control">
+              <div class="scale-header">
+                <span class="scale-label">Height</span>
+                <span class="scale-value" id="height-value">0.3m</span>
+              </div>
+              <input
+                id="height-slider"
+                class="scale-slider"
+                type="range"
+                min="0"
+                max="1.5"
+                step="0.05"
+                value="0.3"
+                aria-label="Raise object height"
               />
             </div>
 
@@ -296,6 +314,27 @@ export default class ARPlanePage {
 
       scaleSlider.addEventListener('input', (e) => {
         updateScaleUI(e.target.value);
+      });
+    }
+
+    // Height slider
+    const heightSlider = document.getElementById('height-slider');
+    const heightValue = document.getElementById('height-value');
+    if (heightSlider && heightValue) {
+      const updateHeightUI = (value) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return;
+        this.heightOffsetM = num;
+        heightValue.textContent = `${num.toFixed(2)}m`;
+        if (this.webxrController) {
+          this.webxrController.setHeightOffset(num);
+        }
+      };
+
+      updateHeightUI(heightSlider.value);
+
+      heightSlider.addEventListener('input', (e) => {
+        updateHeightUI(e.target.value);
       });
     }
   }
@@ -464,6 +503,7 @@ export default class ARPlanePage {
           arTargetHeightM: typeof this.object.arTargetHeightM === 'number' ? this.object.arTargetHeightM : undefined,
           // Apply current UI scale multiplier
           scaleMultiplier: this.scaleMultiplier,
+          heightOffsetM: this.heightOffsetM,
           onStart: () => {
             this.log('✓ AR session started successfully!');
             this.updateStatus('Point camera at a surface', '📱');
