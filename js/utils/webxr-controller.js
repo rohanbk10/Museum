@@ -80,8 +80,12 @@ export default class WebXRController {
       });
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
+      // Critical for WebXR AR: keep the canvas transparent so camera shows through.
+      this.renderer.setClearColor(0x000000, 0);
+      this.renderer.autoClear = false;
       this.renderer.xr.enabled = true;
       container.appendChild(this.renderer.domElement);
+      this.renderer.domElement.style.background = 'transparent';
       
       await this.renderer.xr.setSession(this.session);
       this.log('[WebXR] Renderer XR session set');

@@ -22,6 +22,11 @@
   z-index: 0;
 }
 
+/* Ensure WebXR canvas never paints an opaque background */
+.webxr-container canvas {
+  background: transparent !important;
+}
+
 /* Start AR Overlay */
 .webxr-start-overlay {
   position: fixed;
