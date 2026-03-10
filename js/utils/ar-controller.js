@@ -34,8 +34,13 @@ export default class ARController {
         imageTargetSrc: './assets/targets.mind',
         uiScanning: 'no',
         uiLoading: 'no',
-        filterMinCF: 0.000001,
-        filterBeta: 10000,
+        // Smoother tracking (reduces visible jitter)
+        filterMinCF: 0.001,
+        filterBeta: 100,
+        // Hold tracking a bit longer before dropping
+        missTolerance: 5,
+        // Require a few frames before locking on
+        warmupTolerance: 3,
       });
 
       const { renderer, scene, camera } = this.mindarThree;

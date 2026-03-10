@@ -18,6 +18,8 @@ export default class WebXRController {
     this.referenceSpace = null;
     this.viewerSpace = null; // Store viewer space for hit-test
     this.arTargetHeightM = null;
+    this.scaleMultiplier = 1;
+    this.templateBaseScaleScalar = null;
     this.lastHitTestResult = null;
     this.anchors = [];
     this.placedModels = [];
@@ -51,6 +53,10 @@ export default class WebXRController {
       callbacks && typeof callbacks.arTargetHeightM === 'number'
         ? callbacks.arTargetHeightM
         : null;
+    this.scaleMultiplier =
+      callbacks && typeof callbacks.scaleMultiplier === 'number'
+        ? this.clampScaleMultiplier(callbacks.scaleMultiplier)
+        : 1;
 
     try {
       // The real session request MUST be the first awaited action after user gesture.
@@ -264,8 +270,8 @@ export default class WebXRController {
           // Best practice: scale by height (Y). Using max dimension can underscale
           // models with wide bases/pedestals.
           const effectiveHeight = size.y > 0 ? size.y : Math.max(size.x, size.y, size.z);
-          const scale = targetHeightM / effectiveHeight;
-          this.modelTemplate.scale.setScalar(scale);
+          this.templateBaseScaleScalar = targetHeightM / effectiveHeight;
+          this.modelTemplate.scale.setScalar(this.templateBaseScaleScalar * this.scaleMultiplier);
 
           // Optimize materials
           this.modelTemplate.traverse((node) => {
@@ -285,6 +291,28 @@ export default class WebXRController {
           reject(error);
         }
       );
+    });
+  }
+
+  clampScaleMultiplier(value) {
+    if (!Number.isFinite(value)) return 1;
+    return Math.min(15, Math.max(1, value));
+  }
+
+  setScaleMultiplier(multiplier) {
+    this.scaleMultiplier = this.clampScaleMultiplier(multiplier);
+
+    // Update template preview scale
+    if (this.modelTemplate && typeof this.templateBaseScaleScalar === 'number') {
+      this.modelTemplate.scale.setScalar(this.templateBaseScaleScalar * this.scaleMultiplier);
+    }
+
+    // Update any already placed models
+    this.placedModels.forEach((model) => {
+      const base = model?.userData?.baseScaleScalar;
+      if (typeof base === 'number' && model?.scale) {
+        model.scale.setScalar(base * this.scaleMultiplier);
+      }
     });
   }
 
@@ -345,6 +373,9 @@ export default class WebXRController {
 
     // Clone the model
     const model = this.modelTemplate.clone();
+    // Remember base scale so slider can adjust after placement
+    model.userData.baseScaleScalar = this.templateBaseScaleScalar || 1;
+    model.scale.setScalar(model.userData.baseScaleScalar * this.scaleMultiplier);
 
     // Get reticle position and orientation
     const position = new THREE.Vector3();
@@ -391,8 +422,14 @@ export default class WebXRController {
       if (!anchor?.anchorSpace || !object) continue;
       const pose = frame.getPose(anchor.anchorSpace, this.referenceSpace);
       if (!pose) continue;
-      object.matrix.fromArray(pose.transform.matrix);
-      object.matrix.decompose(object.position, object.quaternion, object.scale);
+      // Update position/quaternion from anchor pose, but preserve scale (set by slider).
+      const m = new THREE.Matrix4().fromArray(pose.transform.matrix);
+      const pos = new THREE.Vector3();
+      const quat = new THREE.Quaternion();
+      const scl = new THREE.Vector3();
+      m.decompose(pos, quat, scl);
+      object.position.copy(pos);
+      object.quaternion.copy(quat);
     }
   }
 

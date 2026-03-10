@@ -15,6 +15,7 @@ export default class ARPlanePage {
     this.webxrController = null;
     this.renderLoop = null;
     this.diagnosticLogs = [];
+    this.scaleMultiplier = 1;
   }
   
   log(message, type = 'info') {
@@ -140,6 +141,23 @@ export default class ARPlanePage {
               <span class="btn-label">Undo</span>
             </button>
 
+            <div class="webxr-scale" aria-label="Scale control">
+              <div class="scale-header">
+                <span class="scale-label">Size</span>
+                <span class="scale-value" id="scale-value">1.0×</span>
+              </div>
+              <input
+                id="scale-slider"
+                class="scale-slider"
+                type="range"
+                min="1"
+                max="15"
+                step="0.1"
+                value="1"
+                aria-label="Scale object size"
+              />
+            </div>
+
             <div class="placement-counter" id="placement-counter">
               <span class="counter-label">Placed:</span>
               <span class="counter-value">0</span>
@@ -258,6 +276,28 @@ export default class ARPlanePage {
     document.addEventListener('selectstart', () => {
       this.placeModel();
     });
+
+    // Scale slider
+    const scaleSlider = document.getElementById('scale-slider');
+    const scaleValue = document.getElementById('scale-value');
+    if (scaleSlider && scaleValue) {
+      const updateScaleUI = (value) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return;
+        this.scaleMultiplier = num;
+        scaleValue.textContent = `${num.toFixed(1)}×`;
+        if (this.webxrController) {
+          this.webxrController.setScaleMultiplier(num);
+        }
+      };
+
+      // Initialize
+      updateScaleUI(scaleSlider.value);
+
+      scaleSlider.addEventListener('input', (e) => {
+        updateScaleUI(e.target.value);
+      });
+    }
   }
 
   showDiagnostics() {
@@ -422,6 +462,8 @@ export default class ARPlanePage {
         {
           // Use real-world sizing (meters) when available
           arTargetHeightM: typeof this.object.arTargetHeightM === 'number' ? this.object.arTargetHeightM : undefined,
+          // Apply current UI scale multiplier
+          scaleMultiplier: this.scaleMultiplier,
           onStart: () => {
             this.log('✓ AR session started successfully!');
             this.updateStatus('Point camera at a surface', '📱');
