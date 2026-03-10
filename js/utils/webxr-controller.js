@@ -45,6 +45,26 @@ export default class WebXRController {
       throw new Error('Immersive AR not supported on this device');
     }
 
+    // Probe ARCore functionality with minimal session request
+    this.log('[WebXR] Checking ARCore functionality via session probe...');
+    try {
+      const testSession = await navigator.xr.requestSession('immersive-ar', {
+        requiredFeatures: ['viewer']  // viewer is the most basic possible
+      });
+      this.log('[WebXR] ✓ Basic viewer space works - ARCore is functional');
+      await testSession.end();
+    } catch (e) {
+      this.log(`[WebXR] ✗ Even viewer space failed: ${e.name} - ${e.message}`);
+      this.log('[WebXR] ARCore is not functional - may need update from Play Store');
+      throw new Error(
+        'ARCore is not functioning properly. Please try:\n' +
+        '1. Update "Google Play Services for AR" (ARCore) from Play Store\n' +
+        '2. Restart Chrome\n' +
+        '3. Ensure camera permissions are granted\n\n' +
+        `Technical error: ${e.name}`
+      );
+    }
+
     try {
       this.log('[WebXR] Initializing Three.js scene...');
       
@@ -152,6 +172,46 @@ export default class WebXRController {
 
     } catch (error) {
       this.log(`[WebXR] ✗ Session request failed: ${error.name} - ${error.message}`);
+      
+      // Provide actionable guidance instead of raw error
+      if (error.name === 'NotSupportedError') {
+        const userFriendlyError = new Error(
+          'AR initialization failed. Please try:\n' +
+          '1. Update "Google Play Services for AR" (ARCore) from Play Store\n' +
+          '2. Restart Chrome\n' +
+          '3. Ensure camera permissions are granted\n' +
+          '4. Check that your device supports ARCore\n\n' +
+          `Technical details: ${error.message}`
+        );
+        userFriendlyError.name = error.name;
+        await this.stopSession();
+        throw userFriendlyError;
+      }
+      
+      if (error.name === 'NotAllowedError') {
+        const userFriendlyError = new Error(
+          'Camera access denied. Please:\n' +
+          '1. Allow camera permissions when prompted\n' +
+          '2. Check browser settings (Site Settings > Camera)\n' +
+          '3. Try reloading the page'
+        );
+        userFriendlyError.name = error.name;
+        await this.stopSession();
+        throw userFriendlyError;
+      }
+      
+      if (error.name === 'SecurityError') {
+        const userFriendlyError = new Error(
+          'Security error - AR requires HTTPS:\n' +
+          '1. Ensure you\'re accessing via https://\n' +
+          '2. Localhost is also supported for testing\n\n' +
+          `Technical details: ${error.message}`
+        );
+        userFriendlyError.name = error.name;
+        await this.stopSession();
+        throw userFriendlyError;
+      }
+      
       await this.stopSession();
       throw error;
     }
