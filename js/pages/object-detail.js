@@ -5,6 +5,7 @@
 
 import { getObjectById } from '../data/collection.js';
 import ThreeViewer from '../utils/three-viewer.js';
+import { getAROptions } from '../utils/device-detection.js';
 
 export default class ObjectDetailPage {
   constructor(router, params) {
@@ -12,11 +13,15 @@ export default class ObjectDetailPage {
     this.params = params;
     this.object = null;
     this.viewer = null;
+    this.arOptions = null;
   }
 
-  render() {
+  async render() {
     const objectId = this.params.id;
     this.object = getObjectById(objectId);
+
+    // Get AR options based on device
+    this.arOptions = await getAROptions();
 
     if (!this.object) {
       return `
@@ -86,23 +91,56 @@ export default class ObjectDetailPage {
             ${this.object.hasAR ? `
               <div class="ar-section">
                 <div class="ar-info">
-                  <h3>✨ AR Experience Available</h3>
-                  <p>View this object in augmented reality by pointing your camera at the exhibit marker.</p>
+                  <h3>✨ AR Experiences Available</h3>
+                  <p>View this object in augmented reality using one of the modes below.</p>
                   <p class="ar-disclaimer">Note: AR uses your camera and may drain battery.</p>
                 </div>
-                <button class="ar-launch-btn" data-action="launch-ar">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
-                    <line x1="7" y1="2" x2="7" y2="22"/>
-                    <line x1="17" y1="2" x2="17" y2="22"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <line x1="2" y1="7" x2="7" y2="7"/>
-                    <line x1="2" y1="17" x2="7" y2="17"/>
-                    <line x1="17" y1="17" x2="22" y2="17"/>
-                    <line x1="17" y1="7" x2="22" y2="7"/>
-                  </svg>
-                  Launch AR Experience
-                </button>
+                
+                <div class="ar-buttons-grid">
+                  <!-- Marker AR (Always available) -->
+                  <button class="ar-launch-btn marker-ar" data-action="launch-ar">
+                    <div class="ar-btn-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                        <line x1="7" y1="2" x2="7" y2="22"/>
+                        <line x1="17" y1="2" x2="17" y2="22"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <line x1="2" y1="7" x2="7" y2="7"/>
+                        <line x1="2" y1="17" x2="7" y2="17"/>
+                        <line x1="17" y1="17" x2="22" y2="17"/>
+                        <line x1="17" y1="7" x2="22" y2="7"/>
+                      </svg>
+                    </div>
+                    <div class="ar-btn-content">
+                      <span class="ar-btn-title">Launch Marker AR</span>
+                      <span class="ar-btn-subtitle">Point at exhibit marker</span>
+                    </div>
+                  </button>
+
+                  <!-- Plane AR (Android Chrome only) -->
+                  ${this.arOptions.showPlaneAR && this.object.hasModel ? `
+                    <button class="ar-launch-btn plane-ar" data-action="launch-plane-ar">
+                      <div class="ar-btn-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                          <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+                        </svg>
+                      </div>
+                      <div class="ar-btn-content">
+                        <span class="ar-btn-title">Place on Surface</span>
+                        <span class="ar-btn-subtitle">Tap to place anywhere</span>
+                        <span class="ar-btn-badge">⚡ Experimental</span>
+                      </div>
+                    </button>
+                  ` : ''}
+                </div>
+
+                ${!this.arOptions.showPlaneAR ? `
+                  <div class="ar-platform-note">
+                    <p><strong>💡 Did you know?</strong> Surface placement AR is available on Android Chrome. Currently viewing from ${this.arOptions.deviceSupport.platform}.</p>
+                  </div>
+                ` : ''}
               </div>
             ` : ''}
           </div>
@@ -125,11 +163,18 @@ export default class ObjectDetailPage {
       await this.init3DViewer();
     }
 
-    // AR launch button
-    const arBtn = document.querySelector('[data-action="launch-ar"]');
-    if (arBtn) {
-      arBtn.addEventListener('click', () => {
+    // AR launch buttons
+    const markerArBtn = document.querySelector('[data-action="launch-ar"]');
+    if (markerArBtn) {
+      markerArBtn.addEventListener('click', () => {
         this.router.navigate(`/object/${this.object.id}/ar`);
+      });
+    }
+
+    const planeArBtn = document.querySelector('[data-action="launch-plane-ar"]');
+    if (planeArBtn) {
+      planeArBtn.addEventListener('click', () => {
+        this.router.navigate(`/object/${this.object.id}/ar-plane`);
       });
     }
   }

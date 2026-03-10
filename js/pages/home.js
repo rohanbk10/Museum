@@ -16,12 +16,11 @@ export default class HomePage {
     
     return `
       <div class="home-page">
-        <div class="home-background"></div>
-        
-        <div class="home-content">
-          <header class="home-header">
+        <div class="home-hero">
+          <!-- Brand Panel (40%) -->
+          <div class="brand-panel">
             <div class="museum-logo">
-              <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+              <svg width="80" height="80" viewBox="0 0 60 60" fill="none">
                 <rect x="5" y="15" width="50" height="35" stroke="white" stroke-width="2" fill="none"/>
                 <rect x="10" y="20" width="8" height="25" fill="white" opacity="0.8"/>
                 <rect x="22" y="20" width="8" height="25" fill="white" opacity="0.8"/>
@@ -31,32 +30,40 @@ export default class HomePage {
                 <rect x="0" y="50" width="60" height="3" fill="white"/>
               </svg>
             </div>
+            
             <h1 class="museum-title">Museum AR</h1>
             <p class="museum-subtitle">Discover History Through Technology</p>
-          </header>
 
-          <nav class="home-nav">
-            <button class="home-btn primary" data-route="/collection">
-              <span class="btn-icon">🎨</span>
-              <span class="btn-text">Explore Art Collection</span>
-              <span class="btn-subtitle">${arCount} AR Experience${arCount !== 1 ? 's' : ''} Available</span>
-            </button>
+            <nav class="home-nav">
+              <button class="home-btn" data-route="/collection">
+                <span class="btn-icon">🎨</span>
+                <div class="btn-content">
+                  <span class="btn-text">Explore Art Collection</span>
+                  <span class="btn-subtitle">View ${arCount} AR experience${arCount !== 1 ? 's' : ''}</span>
+                </div>
+              </button>
 
-            <button class="home-btn secondary" data-route="/map">
-              <span class="btn-icon">🗺️</span>
-              <span class="btn-text">View Museum Map</span>
-              <span class="btn-subtitle">Navigate the Galleries</span>
-            </button>
-          </nav>
+              <button class="home-btn" data-route="/map">
+                <span class="btn-icon">🗺️</span>
+                <div class="btn-content">
+                  <span class="btn-text">View Museum Map</span>
+                  <span class="btn-subtitle">Navigate the galleries</span>
+                </div>
+              </button>
+            </nav>
 
-          <div class="home-badge">
-            <span class="badge-pulse"></span>
-            <span class="badge-text">✨ ${arCount} AR Experience${arCount !== 1 ? 's' : ''} Available</span>
+            <div class="home-badge">
+              <span class="badge-pulse"></span>
+              <span class="badge-text">✨ ${arCount} AR Experience${arCount !== 1 ? 's' : ''} Available</span>
+            </div>
+
+            <footer class="home-footer">
+              <p>Point your camera at exhibit markers to view artifacts in 3D</p>
+            </footer>
           </div>
 
-          <footer class="home-footer">
-            <p>Point your camera at exhibit markers to view artifacts in 3D</p>
-          </footer>
+          <!-- Hero Image Section (60%) -->
+          <div class="hero-image"></div>
         </div>
       </div>
     `;
@@ -73,11 +80,6 @@ export default class HomePage {
         }
       });
     });
-
-    // Add fade-in animation
-    setTimeout(() => {
-      document.querySelector('.home-content')?.classList.add('fade-in');
-    }, 100);
   }
 
   cleanup() {

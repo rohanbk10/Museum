@@ -1,0 +1,317 @@
+/**
+ * AR Plane Page - WebXR Plane Detection AR
+ * Allows users to place 3D models on detected surfaces
+ * Android Chrome with ARCore only
+ */
+
+import { getObjectById } from '../data/collection.js';
+import WebXRController from '../utils/webxr-controller.js';
+
+export default class ARPlanePage {
+  constructor(router, params) {
+    this.router = router;
+    this.params = params;
+    this.object = null;
+    this.webxrController = null;
+    this.renderLoop = null;
+  }
+
+  render() {
+    const objectId = this.params.id;
+    this.object = getObjectById(objectId);
+
+    if (!this.object) {
+      return `
+        <div class="error-page">
+          <h1>Object Not Found</h1>
+          <button onclick="window.location.hash = '/collection'">Back to Collection</button>
+        </div>
+      `;
+    }
+
+    if (!this.object.hasModel) {
+      return `
+        <div class="error-page">
+          <h1>3D Model Not Available</h1>
+          <p>This object does not have a 3D model for AR placement.</p>
+          <button onclick="window.location.hash = '/object/${objectId}'">Back to Object</button>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="ar-plane-page">
+        <div id="webxr-container" class="webxr-container"></div>
+        
+        <div class="webxr-overlay">
+          <button class="exit-webxr-btn" data-action="exit">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Exit AR
+          </button>
+
+          <div class="webxr-instructions" id="webxr-instructions">
+            <div class="instruction-content">
+              <div class="instruction-icon">📱</div>
+              <h3>Scan Your Space</h3>
+              <p>Move your phone slowly to detect surfaces</p>
+              <div class="instruction-steps">
+                <div class="step">1. Point camera at floor or table</div>
+                <div class="step">2. Wait for circle to appear</div>
+                <div class="step">3. Tap to place ${this.object.title}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="webxr-status" id="webxr-status">
+            <span class="status-icon">🔍</span>
+            <span class="status-text">Initializing AR...</span>
+          </div>
+
+          <div class="webxr-controls" id="webxr-controls" style="display: none;">
+            <button class="webxr-control-btn" data-action="place" title="Tap to Place">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3" fill="currentColor"/>
+              </svg>
+              <span class="btn-label">Tap to Place</span>
+            </button>
+
+            <button class="webxr-control-btn" data-action="undo" title="Remove Last" style="display: none;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 7v6h6"/>
+                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+              </svg>
+              <span class="btn-label">Undo</span>
+            </button>
+
+            <div class="placement-counter" id="placement-counter">
+              <span class="counter-label">Placed:</span>
+              <span class="counter-value">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  async mount() {
+    // Setup UI handlers
+    this.setupUIHandlers();
+
+    // Start WebXR session
+    await this.startWebXR();
+  }
+
+  setupUIHandlers() {
+    // Exit button
+    const exitBtn = document.querySelector('[data-action="exit"]');
+    if (exitBtn) {
+      exitBtn.addEventListener('click', () => this.exitWebXR());
+    }
+
+    // Place button (tap anywhere alternative)
+    const placeBtn = document.querySelector('[data-action="place"]');
+    if (placeBtn) {
+      placeBtn.addEventListener('click', () => this.placeModel());
+    }
+
+    // Undo button
+    const undoBtn = document.querySelector('[data-action="undo"]');
+    if (undoBtn) {
+      undoBtn.addEventListener('click', () => this.undoLastPlacement());
+    }
+
+    // Listen for select events (screen taps in XR)
+    document.addEventListener('selectstart', () => {
+      this.placeModel();
+    });
+  }
+
+  async startWebXR() {
+    const container = document.getElementById('webxr-container');
+    const status = document.getElementById('webxr-status');
+    const instructions = document.getElementById('webxr-instructions');
+    const controls = document.getElementById('webxr-controls');
+
+    if (!container) {
+      console.error('WebXR container not found');
+      return;
+    }
+
+    try {
+      this.webxrController = new WebXRController();
+
+      this.updateStatus('Starting AR session...', '🚀');
+
+      await this.webxrController.startSession(
+        container,
+        this.object.modelPath,
+        {
+          onStart: () => {
+            this.updateStatus('Point camera at a surface', '📱');
+            if (instructions) {
+              setTimeout(() => {
+                instructions.style.opacity = '0';
+                setTimeout(() => instructions.style.display = 'none', 300);
+              }, 3000);
+            }
+            if (controls) {
+              controls.style.display = 'flex';
+            }
+            this.startRenderLoop();
+          },
+          onEnd: () => {
+            this.stopRenderLoop();
+          }
+        }
+      );
+
+    } catch (error) {
+      console.error('Failed to start WebXR:', error);
+      
+      let errorMessage = 'Failed to start AR';
+      if (error.message.includes('not supported')) {
+        errorMessage = 'AR not supported on this device';
+      } else if (error.message.includes('permission')) {
+        errorMessage = 'Camera permission denied';
+      }
+
+      this.updateStatus(errorMessage, '⚠️');
+
+      // Show error and exit button
+      if (status) {
+        status.style.background = 'rgba(255, 59, 48, 0.9)';
+      }
+    }
+  }
+
+  startRenderLoop() {
+    const renderer = this.webxrController.getRenderer();
+    const scene = this.webxrController.getScene();
+    const camera = this.webxrController.getCamera();
+
+    if (!renderer || !scene || !camera) return;
+
+    renderer.setAnimationLoop((timestamp, frame) => {
+      if (frame && this.webxrController) {
+        // Update reticle position based on hit-test
+        this.webxrController.updateReticle(frame);
+
+        // Update UI based on reticle visibility
+        this.updatePlacementUI();
+      }
+
+      renderer.render(scene, camera);
+    });
+  }
+
+  stopRenderLoop() {
+    const renderer = this.webxrController?.getRenderer();
+    if (renderer) {
+      renderer.setAnimationLoop(null);
+    }
+  }
+
+  updatePlacementUI() {
+    if (!this.webxrController) return;
+
+    const isReticleVisible = this.webxrController.isReticleVisible();
+    const placedCount = this.webxrController.getPlacedModelsCount();
+
+    // Update status
+    if (isReticleVisible) {
+      this.updateStatus('Tap to place object', '✨');
+    } else {
+      this.updateStatus('Scan for surfaces...', '🔍');
+    }
+
+    // Update counter
+    const counterValue = document.querySelector('.counter-value');
+    if (counterValue) {
+      counterValue.textContent = placedCount;
+    }
+
+    // Show/hide undo button
+    const undoBtn = document.querySelector('[data-action="undo"]');
+    if (undoBtn) {
+      undoBtn.style.display = placedCount > 0 ? 'flex' : 'none';
+    }
+
+    // Enable/disable place button based on reticle
+    const placeBtn = document.querySelector('[data-action="place"]');
+    if (placeBtn) {
+      placeBtn.disabled = !isReticleVisible;
+      placeBtn.style.opacity = isReticleVisible ? '1' : '0.5';
+    }
+  }
+
+  placeModel() {
+    if (!this.webxrController) return;
+
+    const model = this.webxrController.placeModel();
+    
+    if (model) {
+      this.updateStatus('Object placed!', '✅');
+      this.updatePlacementUI();
+
+      // Flash feedback
+      const container = document.getElementById('webxr-container');
+      if (container) {
+        container.style.transition = 'opacity 0.1s';
+        container.style.opacity = '0.7';
+        setTimeout(() => {
+          container.style.opacity = '1';
+        }, 100);
+      }
+    }
+  }
+
+  undoLastPlacement() {
+    if (!this.webxrController) return;
+
+    this.webxrController.removeLastModel();
+    this.updateStatus('Last placement removed', '↩️');
+    this.updatePlacementUI();
+  }
+
+  updateStatus(text, icon = '📱') {
+    const statusEl = document.getElementById('webxr-status');
+    if (statusEl) {
+      const iconEl = statusEl.querySelector('.status-icon');
+      const textEl = statusEl.querySelector('.status-text');
+      
+      if (iconEl) iconEl.textContent = icon;
+      if (textEl) textEl.textContent = text;
+    }
+  }
+
+  async exitWebXR() {
+    this.stopRenderLoop();
+
+    if (this.webxrController) {
+      await this.webxrController.stopSession();
+      this.webxrController = null;
+    }
+
+    this.router.navigate(`/object/${this.object.id}`);
+  }
+
+  async cleanup() {
+    console.log('Cleaning up WebXR AR page...');
+    
+    this.stopRenderLoop();
+
+    if (this.webxrController) {
+      await this.webxrController.stopSession();
+      this.webxrController = null;
+    }
+
+    // Remove event listeners
+    document.removeEventListener('selectstart', this.placeModel);
+
+    return Promise.resolve();
+  }
+}

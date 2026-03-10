@@ -1,43 +1,89 @@
 /**
- * Collection Page Styles
- * Scrollable art collection with cards
+ * Collection Page Styles - Museum Editorial Design
+ * Generous whitespace and elegant card layout
  */
-
-@import './global.css';
 
 .collection-page {
   min-height: 100vh;
-  background: var(--bg);
-  padding-bottom: var(--spacing-xl);
+  background: var(--bg-cream);
 }
 
+.collection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-xl) var(--spacing-editorial);
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.collection-header h1 {
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  color: var(--text-primary);
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background: var(--museum-green);
+  color: white;
+  border-color: var(--museum-green);
+  transform: scale(1.05);
+}
+
+.header-spacer {
+  width: 44px;
+}
+
+/* Collection Content */
 .collection-content {
-  padding: var(--spacing-lg);
-  max-width: 1200px;
+  padding: var(--spacing-editorial);
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 .collection-intro {
   text-align: center;
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: var(--spacing-xl);
-  padding: 0 var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.8;
+  max-width: 600px;
+  margin: 0 auto var(--spacing-section);
+  padding: 0;
 }
 
-/* Collection Grid */
+/* Collection Grid - Editorial Layout */
 .collection-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 60px;
 }
 
-/* Object Card */
+/* Object Card - Museum Style */
 .object-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  background: var(--bg-white);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   transition: all var(--transition-base);
   opacity: 0;
@@ -50,9 +96,9 @@
 }
 
 .object-card:hover {
+  border-color: var(--accent-gold);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Card Image */
@@ -60,7 +106,7 @@
   position: relative;
   width: 100%;
   padding-top: 75%; /* 4:3 aspect ratio */
-  background: var(--bg-light);
+  background: var(--bg-light-gray);
   overflow: hidden;
 }
 
@@ -80,45 +126,50 @@
 
 .ar-badge {
   position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: rgba(245, 158, 66, 0.95);
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  padding: 6px 12px;
+  background: var(--accent-gold);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-sm);
   color: white;
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
   gap: 4px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Card Content */
 .card-content {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl);
 }
 
 .card-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: var(--spacing-xs);
-  color: var(--text);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
 }
 
 .card-period {
-  font-size: 0.875rem;
-  color: var(--accent);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--accent-gold);
   font-weight: 600;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  display: block;
 }
 
 .card-description {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--text-muted);
-  margin-bottom: var(--spacing-md);
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -129,18 +180,22 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--primary);
+  padding: 12px 20px;
+  background: var(--museum-green);
   color: white;
+  border: none;
   border-radius: var(--radius-sm);
-  font-size: 0.95rem;
+  font-size: 15px;
   font-weight: 600;
+  letter-spacing: 0.5px;
   transition: all var(--transition-base);
+  cursor: pointer;
 }
 
 .card-btn:hover {
-  background: var(--primary-dark);
+  background: var(--museum-green-light);
   gap: var(--spacing-sm);
+  box-shadow: 0 4px 16px rgba(30, 90, 67, 0.3);
 }
 
 .card-btn svg {
@@ -148,22 +203,65 @@
 }
 
 .card-btn:hover svg {
-  transform: translateX(2px);
+  transform: translateX(4px);
 }
 
-/* Responsive */
-@media (min-width: 640px) {
+/* Responsive Design */
+@media (max-width: 1200px) {
   .collection-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 50px;
   }
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 768px) {
+  .collection-header {
+    padding: var(--spacing-lg) var(--spacing-lg);
+  }
+  
+  .collection-header h1 {
+    font-size: 24px;
+  }
+  
+  .collection-content {
+    padding: 40px 24px;
+  }
+  
+  .collection-intro {
+    margin-bottom: 60px;
+    font-size: 15px;
+  }
+  
   .collection-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .card-content {
+    padding: var(--spacing-lg);
+  }
+  
+  .card-title {
+    font-size: 20px;
+  }
+  
+  .card-period {
+    font-size: 14px;
   }
   
   .card-description {
+    font-size: 14px;
     -webkit-line-clamp: 4;
+  }
+}
+
+@media (max-width: 480px) {
+  .back-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .header-spacer {
+    width: 40px;
   }
 }

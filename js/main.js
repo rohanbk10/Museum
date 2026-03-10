@@ -1,14 +1,10 @@
-/**
- * Main Entry Point
- * Initializes the router and defines all routes
- */
-
 import Router from './router.js';
 import HomePage from './pages/home.js';
 import MapPage from './pages/map.js';
 import CollectionPage from './pages/collection.js';
 import ObjectDetailPage from './pages/object-detail.js';
 import ARViewerPage from './pages/ar-viewer.js';
+import ARPlanePage from './pages/ar-plane.js';
 
 // Initialize thumbnails (must be done before collection is used)
 import './data/thumbnails.js';
@@ -19,10 +15,12 @@ const router = new Router({
   '/map': MapPage,
   '/collection': CollectionPage,
   '/object/:id': ObjectDetailPage,
-  '/object/:id/ar': ARViewerPage
+  '/object/:id/ar': ARViewerPage,
+  '/object/:id/ar-plane': ARPlanePage
 });
 
 // Make router globally accessible for debugging
 window.museumRouter = router;
 
 console.log('Museum AR Experience loaded');
+
