@@ -125,7 +125,11 @@ export default class ARPlanePage {
             <span class="status-text">Initializing AR...</span>
           </div>
 
-          <div class="webxr-controls" id="webxr-controls" style="display: none;">
+          <div class="webxr-controls" id="webxr-controls" style="display: none;" data-open="true">
+            <button class="webxr-controls-toggle" id="webxr-controls-toggle" type="button">
+              <span id="controls-toggle-label">Hide controls</span>
+            </button>
+            <div class="webxr-controls-inner">
             <button class="webxr-control-btn" data-action="place" title="Tap to Place">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
@@ -179,6 +183,7 @@ export default class ARPlanePage {
             <div class="placement-counter" id="placement-counter">
               <span class="counter-label">Placed:</span>
               <span class="counter-value">0</span>
+            </div>
             </div>
           </div>
         </div>
@@ -335,6 +340,25 @@ export default class ARPlanePage {
 
       heightSlider.addEventListener('input', (e) => {
         updateHeightUI(e.target.value);
+      });
+    }
+
+    // Controls collapse toggle
+    const controls = document.getElementById('webxr-controls');
+    const controlsToggle = document.getElementById('webxr-controls-toggle');
+    const controlsToggleLabel = document.getElementById('controls-toggle-label');
+    if (controls && controlsToggle && controlsToggleLabel) {
+      const updateToggleLabel = () => {
+        const isOpen = controls.getAttribute('data-open') !== 'false';
+        controlsToggleLabel.textContent = isOpen ? 'Hide controls' : 'Show controls';
+      };
+
+      updateToggleLabel();
+
+      controlsToggle.addEventListener('click', () => {
+        const isOpen = controls.getAttribute('data-open') !== 'false';
+        controls.setAttribute('data-open', isOpen ? 'false' : 'true');
+        updateToggleLabel();
       });
     }
   }
